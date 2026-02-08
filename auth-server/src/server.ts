@@ -5,7 +5,7 @@ import fastifyCors from "@fastify/cors";
 const fastify = Fastify({ logger: true });
 
 fastify.register(fastifyCors, {
-  origin: ["http://localhost:3000"],
+  origin: ["http://localhost:3000", "http://localhost:8081", "fizzy://"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
