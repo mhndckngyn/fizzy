@@ -8,6 +8,15 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [jwt, setJwt] = useState("");
+
+  const showToken = async () => {
+    const { data } = await authClient.token();
+    if (data) {
+      const jwtToken = data.token;
+      setJwt(jwtToken);
+    }
+  };
 
   const onSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
@@ -52,6 +61,14 @@ export default function SignUpPage() {
       <br />
 
       <SignInPage />
+
+      <button onClick={showToken}>button</button>
+      {jwt && (
+        <div>
+          <h2>Your JWT Token:</h2>
+          <pre>{jwt}</pre>
+        </div>
+      )}
     </div>
   );
 }
