@@ -10,8 +10,6 @@ namespace api_app
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            string authUrl = builder.Configuration["ApiSettings:AuthBaseUrl"];
-
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -21,17 +19,39 @@ namespace api_app
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = authUrl;
+                // Các config cơ bản
+                options.Authority = builder.Configuration["AuthApi:BaseUrl"];
+                options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = authUrl,
-                    ValidateAudience = true,
-                    ValidAudience = "https://your-aspnet-backend.com",
-                    ValidateLifetime = true
-                };
+                    ValidIssuer = builder.Configuration["AuthApi:Issuer"],
 
-                options.MetadataAddress = authUrl + "/jwks";
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["AuthApi:Audience"],
+
+                    ValidateIssuerSigningKey = true,
+
+                    // tải key từ JWKS endpoint
+                    IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+                    {
+                        var jwksUrl = builder.Configuration["AuthApi:JwksUrl"];
+
+                        using var client = new HttpClient();
+                        try
+                        {
+                            var response = client.GetStringAsync(jwksUrl).Result;
+                            var keySet = new JsonWebKeySet(response);
+
+                            return keySet.GetSigningKeys();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Lỗi tải JWKS: " + ex.Message);
+                            return [];
+                        }
+                    }
+                };
             });
 
             var app = builder.Build();
@@ -44,8 +64,8 @@ namespace api_app
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
