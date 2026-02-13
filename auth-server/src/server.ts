@@ -13,6 +13,17 @@ fastify.register(fastifyCors, {
 });
 
 fastify.route({
+  method: ["GET"],
+  url: "/api/auth/.well-known/openid-configuration",
+  async handler(_, reply) {
+    reply.code(200).send({
+      issuer: "http://localhost:4000",
+      jwks_uri: "http://localhost:4000/api/auth/jwks",
+    });
+  },
+});
+
+fastify.route({
   method: ["GET", "POST"],
   url: "/api/auth/*",
   async handler(request, reply) {

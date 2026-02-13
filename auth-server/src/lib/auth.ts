@@ -20,6 +20,9 @@ export const auth = betterAuth({
   },
   plugins: [
     jwt({
+      jwt: {
+        audience: "http://localhost:5278",
+      },
       jwks: {
         keyPairConfig: {
           alg: "RS256",
