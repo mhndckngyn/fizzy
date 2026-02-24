@@ -5,21 +5,37 @@ import { authClient } from "@/lib/auth-client";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [flag, setFlag] = useState(false);
+
+  const [otp, setOtp] = useState("");
 
   const onSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
 
-    const res = await authClient.signIn.email({
+    const { data, error } = await authClient.emailOtp.sendVerificationOtp({
       email,
-      password,
+      type: "sign-in",
     });
 
-    if (res?.error) {
-      setError(res.error.message || "");
+    if (error) {
+      setError(error.message || "");
+    } else {
+      setFlag(true);
     }
+  };
+
+  const onOtpSubmit = async () => {
+    console.log("Submitting OTP", otp);
+    console.log("For email", email);
+    const { data, error } = await authClient.signIn.emailOtp({
+      email,
+      otp,
+    });
+
+    console.log(data);
+    console.log(error);
   };
 
   return (
@@ -34,18 +50,18 @@ export default function SignInPage() {
         />
         <br />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
         <br />
 
         <button type="submit">Sign in</button>
       </form>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <br />
+
+      <p>Verify OTP</p>
+      <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} />
+      <button onClick={onOtpSubmit}>Submit</button>
     </div>
   );
 }
