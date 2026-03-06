@@ -16,9 +16,7 @@ export const auth = betterAuth({
     "fizzy://",
     "exp://",
   ],
-  // emailAndPassword: {
-  //   enabled: true,
-  // },
+  
   plugins: [
     jwt({
       jwt: {
@@ -45,4 +43,10 @@ export const auth = betterAuth({
       sendVerificationOnSignUp: true,
     }),
   ],
+
+  advanced: {
+    database: {
+      generateId: "uuid",
+    },
+  },
 });
