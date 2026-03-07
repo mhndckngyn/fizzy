@@ -6,25 +6,27 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
-{
-    options.Authority = builder.Configuration["AuthApi:BaseUrl"];
-    options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new TokenValidationParameters
+builder
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuerSigningKey = true,
-        
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["AuthApi:Issuer"],
+        options.Authority = builder.Configuration["AuthApi:BaseUrl"];
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
 
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["AuthApi:Audience"],
-    };
-});
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["AuthApi:Issuer"],
+
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["AuthApi:Audience"],
+        };
+    });
 
 var app = builder.Build();
 

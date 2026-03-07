@@ -4,12 +4,14 @@
 
 ### Cài đặt
 - [Bun](https://bun.com/)
+- [.NET 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
 
-### Setup thư mục gốc
+### Setup root folder
 (Ở folder root t cài thư viện để tự động format code khi commit)
 
 ```sh
 bun install
+dotnet restore
 ```
 
 ### Setup Auth server
