@@ -11,7 +11,7 @@
 
 ```sh
 bun install
-dotnet restore
+dotnet tool restore
 ```
 
 ### Setup Auth server
