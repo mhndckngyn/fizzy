@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36915.13 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api-app", "api-app\api-app.csproj", "{48D22A1C-4B84-45B6-AD1A-2DFC53A399EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feature", "Feature\Feature.csproj", "{48D22A1C-4B84-45B6-AD1A-2DFC53A399EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

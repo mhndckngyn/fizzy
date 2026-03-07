@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["api-app/api-app.csproj", "api-app/"]
-RUN dotnet restore "./api-app/api-app.csproj"
+COPY ["api-app/Feature.csproj", "Feature/"]
+RUN dotnet restore "./api-app/Feature.csproj"
 COPY . .
-WORKDIR "/src/api-app"
-RUN dotnet build "./api-app.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Feature"
+RUN dotnet build "./Feature.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./api-app.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Feature.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "api-app.dll"]
+ENTRYPOINT ["dotnet", "Feature.dll"]
