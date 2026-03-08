@@ -1,3 +1,5 @@
+using Feature.Middlewares;
+using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -9,6 +11,8 @@ builder.Services.AddControllers();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
