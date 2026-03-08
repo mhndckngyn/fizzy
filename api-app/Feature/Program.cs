@@ -1,3 +1,4 @@
+using Feature.Middlewares;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

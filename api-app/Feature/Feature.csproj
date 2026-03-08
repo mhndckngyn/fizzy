@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>api_app</RootNamespace>
+    <RootNamespace>Feature</RootNamespace>
     <UserSecretsId>2662c421-8c9d-47f7-bcb2-c4df159b30e0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
