@@ -1,5 +1,6 @@
 "use client";
 
+import { removePendingEmailAction } from "@/actions/remove-pending-session.action";
 import {
   Card,
   CardContent,
@@ -10,23 +11,39 @@ import {
 } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { magicLinkToken } from "@/types/signin/magic-link-token.type";
+import { authClient } from "@/lib/auth-client";
+import { verifyToken } from "@/types/signin/verify-token.type";
 import { useForm } from "@tanstack/react-form-nextjs";
+import { clear } from "console";
+import { useRouter } from "next/navigation";
 
-interface SignInMagicLinkProps {
+interface VerifyTokenProps {
   email: string;
 }
 
-export function SignInMagicLink({ email }: SignInMagicLinkProps) {
+export function VerifyToken({ email }: VerifyTokenProps) {
+  const redirect = useRouter();
+
   const form = useForm({
     defaultValues: {
       token: "",
     },
     validators: {
-      onSubmit: magicLinkToken,
+      onSubmit: verifyToken,
     },
-    onSubmit: async (values) => {
-      console.log(values);
+    onSubmit: async ({ value }) => {
+      const { data, error } = await authClient.signIn.emailOtp({
+        email: email,
+        otp: value.token,
+      });
+
+      if (error) {
+        form.setFieldValue("token", "");
+        return;
+      }
+
+      await removePendingEmailAction();
+      redirect.push("/workspace");
     },
   });
 

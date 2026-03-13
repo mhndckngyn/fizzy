@@ -16,7 +16,7 @@ export const auth = betterAuth({
     "fizzy://",
     "exp://",
   ],
-  
+
   plugins: [
     jwt({
       jwt: {

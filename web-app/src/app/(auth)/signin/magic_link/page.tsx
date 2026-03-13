@@ -1,9 +1,17 @@
-import { SignInMagicLink } from "@/components/feature/auth/signin/SignInMagicLink";
+import { VerifyToken } from "@/components/feature/auth/signin/VerifyToken";
+import { getPendingAuthEmail } from "@/lib/session";
+import { redirect } from "next/navigation";
 
-export default function page() {
+export default async function VerifyTokenPage() {
+  const email = await getPendingAuthEmail();
+
+  if (!email) {
+    redirect("/signin");
+  }
+
   return (
     <div className="w-full max-w-md">
-      <SignInMagicLink email="user@example.com" />
+      <VerifyToken email={email} />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { authClient } from "@/lib/auth-client";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export default async function layout({
+export default async function WorkspaceLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -13,13 +13,9 @@ export default async function layout({
     },
   });
 
-  if (data) {
-    redirect("/workspace");
+  if (!data) {
+    redirect("/signin");
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      {children}
-    </div>
-  );
+  return <div>{children}</div>;
 }

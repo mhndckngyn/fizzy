@@ -1,5 +1,6 @@
 "use client";
 
+import { savePendingEmailAction } from "@/actions/set-pending-session.action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,12 +12,16 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { userLogin } from "@/types/signin/user-login.type";
 import { useForm } from "@tanstack/react-form-nextjs";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function SignInEmail() {
+  const router = useRouter();
+
   const form = useForm({
     defaultValues: {
       email: "",
@@ -24,8 +29,20 @@ export function SignInEmail() {
     validators: {
       onSubmit: userLogin,
     },
-    onSubmit: async (values) => {
-      console.log(values);
+    onSubmit: async ({ value }) => {
+      const { data, error } = await authClient.emailOtp.sendVerificationOtp({
+        email: value.email,
+        type: "sign-in",
+      });
+
+      if (error || !data.success) {
+        console.error("Failed to send OTP:", error);
+        return;
+      }
+
+      await savePendingEmailAction(value.email);
+
+      router.push("/signin/magic_link");
     },
   });
   return (
