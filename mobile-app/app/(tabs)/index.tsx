@@ -1,12 +1,9 @@
-import React from "react";
-import SignIn from "../sign-in";
-import SignUp from "../sign-up";
+import { View, Text } from "react-native";
 
 export default function Page() {
   return (
-    <>
-      <SignIn />
-      <SignUp />
-    </>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Text>Home</Text>
+    </View>
   );
 }

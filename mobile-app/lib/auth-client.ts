@@ -4,7 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { jwtClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-  baseURL: "http://localhost:4000/api/auth",
+  baseURL: "https://veterans-whale-texas-separate.trycloudflare.com",
   plugins: [
     expoClient({
       scheme: "fizzy",
