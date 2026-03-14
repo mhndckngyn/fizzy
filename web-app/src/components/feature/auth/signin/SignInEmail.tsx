@@ -87,16 +87,7 @@ export function SignInEmail() {
       </CardContent>
       <CardFooter className="flex flex-col items-center justify-center gap-4 text-center">
         <CardDescription>
-          <span className="font-bold">New here?</span>{" "}
-          <Link
-            href="/signup"
-            className="font-semibold text-primary hover:underline"
-          >
-            Sign up
-          </Link>{" "}
-          to create an account.
-          <span className="font-bold"> Already have an account?</span> Enter
-          your email and we’ll get you signed in.
+          <span>Enter your email and we`ll get you signed in.</span>
         </CardDescription>
         <Button size="lg" className="w-1/2" type="submit" form="signin-email">
           Let's go
