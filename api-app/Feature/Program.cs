@@ -1,3 +1,4 @@
+using Carter;
 using Feature.Middlewares;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,10 +8,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddCarter();
+
+builder.Services.AddMediatR(options =>
+{
+    options.RegisterServicesFromAssembly(typeof(Program).Assembly);
+});
+
 builder.Services.AddControllers();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
@@ -42,9 +52,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseExceptionHandler(options => { });
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapCarter();
 
 app.Run();
