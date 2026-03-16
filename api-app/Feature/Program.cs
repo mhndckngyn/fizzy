@@ -56,6 +56,7 @@ app.UseExceptionHandler(options => { });
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserProvisioner>();
 
 app.MapCarter();
 
