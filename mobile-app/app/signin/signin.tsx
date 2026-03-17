@@ -1,5 +1,6 @@
 import { FizzyLogo } from "@/components/FizzyLogo";
-import { GoogleIcon } from "@/components/GoogleIcon";
+
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -9,11 +10,32 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Button, Input, Text, View, XStack, YStack } from "tamagui";
+import { Button, Input, Text, View, YStack } from "tamagui";
 
 export default function SignInScreen() {
   const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const handleContinue = async () => {
+    if (!email.trim()) return;
+    setError("");
+    setLoading(true);
+
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
+      email,
+      type: "sign-in",
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message || "Something went wrong.");
+    } else {
+      router.push({ pathname: "/signin/verify", params: { email } });
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -34,7 +56,7 @@ export default function SignInScreen() {
               </YStack>
 
               {/* Title */}
-              <YStack ai="center" gap="$2">
+              <YStack ai="center" gap="$5">
                 <Text fontSize={28} fontWeight="600" color="$color">
                   Get into Fizzy
                 </Text>
@@ -58,20 +80,23 @@ export default function SignInScreen() {
                   placeholder="hello@example.com"
                   placeholderTextColor="$color8"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(val) => {
+                    setEmail(val);
+                    if (error) setError("");
+                  }}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
                   size="$5"
-                  onSubmitEditing={() => {
-                    if (email.trim())
-                      router.push({
-                        pathname: "/signin/verify",
-                        params: { email },
-                      });
-                  }}
+                  onSubmitEditing={handleContinue}
                   returnKeyType="go"
+                  borderColor={error ? "$red8" : undefined}
                 />
+                {error ? (
+                  <Text fontSize={13} color="$red10">
+                    {error}
+                  </Text>
+                ) : null}
               </YStack>
 
               {/* Button */}
@@ -79,44 +104,14 @@ export default function SignInScreen() {
                 bg="$blue9"
                 size="$5"
                 br="$4"
-                disabled={!email.trim()}
-                opacity={email.trim() ? 1 : 0.45}
-                onPress={() =>
-                  router.push({ pathname: "/signin/verify", params: { email } })
-                }
+                disabled={!email.trim() || loading}
+                opacity={!email.trim() || loading ? 0.45 : 1}
+                onPress={handleContinue}
               >
                 <Text col="white" fontSize={16} fontWeight="600">
-                  {"Let's go →"}
+                  {loading ? "Sending…" : "Let's go →"}
                 </Text>
               </Button>
-
-              {/* Divider */}
-              <XStack ai="center" gap="$3">
-                <View flex={1} h={1} bg="$borderColor" />
-                <Text fontSize={12} color="$colorSubtle">
-                  or continue with
-                </Text>
-                <View flex={1} h={1} bg="$borderColor" />
-              </XStack>
-
-              {/* Google */}
-              <Button variant="outlined" size="$5" br="$4" icon={GoogleIcon}>
-                Continue with Google
-              </Button>
-
-              {/* Footer */}
-              <Text
-                fontSize={12}
-                color="$colorSubtle"
-                ta="center"
-                lh={18}
-                mt="$4"
-              >
-                By continuing, you agree to our{"\n"}
-                <Text color="$blue10">Terms of Service</Text>
-                {" & "}
-                <Text color="$blue10">Privacy Policy</Text>
-              </Text>
             </YStack>
           </View>
         </ScrollView>
