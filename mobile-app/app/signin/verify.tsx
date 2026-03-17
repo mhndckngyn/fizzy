@@ -1,4 +1,5 @@
 import { FizzyLogo } from "@/components/FizzyLogo";
+import { authClient } from "@/lib/auth-client";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Platform, TextInput } from "react-native";
@@ -15,7 +16,38 @@ export default function VerifyEmailScreen() {
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
   const [isFocused, setIsFocused] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
+
+  async function verify() {
+    if (!isComplete || isExpired) return;
+    setError("");
+    setLoading(true);
+
+    const { error } = await authClient.signIn.emailOtp({ email, otp });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message || "Invalid code. Please try again.");
+      setOtp("");
+      inputRef.current?.focus();
+    } else {
+      router.replace("/");
+    }
+  }
+
+  async function resend() {
+    setOtp("");
+    setError("");
+    setTimeLeft(TIMER_SECONDS);
+
+    await authClient.emailOtp.sendVerificationOtp({
+      email,
+      type: "sign-in",
+    });
+  }
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 300);
@@ -60,12 +92,13 @@ export default function VerifyEmailScreen() {
           <XStack
             bg="$backgroundStrong"
             bw={1.5}
-            bc={isFocused ? "$blue9" : "$borderColor"}
+            bc={error ? "$red8" : isFocused ? "$blue9" : "$borderColor"}
             br="$5"
             py="$4"
             px="$6"
             jc="center"
             gap="$4"
+            onPress={() => inputRef.current?.focus()}
           >
             {Array.from({ length: OTP_LENGTH }).map((_, i) => (
               <View
@@ -89,9 +122,10 @@ export default function VerifyEmailScreen() {
           <TextInput
             ref={inputRef}
             value={otp}
-            onChangeText={(val) =>
-              setOtp(val.replace(/\D/g, "").slice(0, OTP_LENGTH))
-            }
+            onChangeText={(val) => {
+              setOtp(val.replace(/\D/g, "").slice(0, OTP_LENGTH));
+              if (error) setError("");
+            }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             keyboardType="number-pad"
@@ -113,13 +147,20 @@ export default function VerifyEmailScreen() {
           />
         </View>
 
-        {/* Email hint */}
-        <Text fontSize={13} col="$colorSubtle" ta="center">
-          Code sent to{" "}
-          <Text col="$color" fontWeight="500">
-            {email}
+        {/* Error message */}
+        {error ? (
+          <Text fontSize={13} col="$red10" ta="center">
+            {error}
           </Text>
-        </Text>
+        ) : (
+          /* Email hint */
+          <Text fontSize={13} col="$colorSubtle" ta="center">
+            Code sent to{" "}
+            <Text col="$color" fontWeight="500">
+              {email}
+            </Text>
+          </Text>
+        )}
 
         {/* Timer chip */}
         <XStack
@@ -149,11 +190,12 @@ export default function VerifyEmailScreen() {
           bg="$blue9"
           size="$5"
           br="$4"
-          disabled={!isComplete || isExpired}
-          opacity={!isComplete || isExpired ? 0.4 : 1}
+          disabled={!isComplete || isExpired || loading}
+          opacity={!isComplete || isExpired || loading ? 0.4 : 1}
+          onPress={verify}
         >
           <Text col="white" fontSize={16} fontWeight="600">
-            Verify code →
+            {loading ? "Verifying…" : "Verify code →"}
           </Text>
         </Button>
 
@@ -162,23 +204,10 @@ export default function VerifyEmailScreen() {
           <Text fontSize={13} col="$colorSubtle">
             Did not receive the code?{" "}
           </Text>
-          <Text
-            fontSize={13}
-            col="$blue10"
-            fontWeight="500"
-            onPress={() => {
-              setTimeLeft(TIMER_SECONDS);
-              setOtp("");
-            }}
-          >
+          <Text fontSize={13} col="$blue10" fontWeight="500" onPress={resend}>
             Resend
           </Text>
         </XStack>
-
-        {/* Footer */}
-        <Text fontSize={12} col="$colorSubtle" ta="center" pt="$2">
-          Fizzy™ by <Text col="$blue10">37signals</Text>
-        </Text>
       </YStack>
     </View>
   );
