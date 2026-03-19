@@ -56,7 +56,7 @@ export default function SignInScreen() {
               </YStack>
 
               {/* Title */}
-              <YStack ai="center" gap="$5">
+              <YStack ai="center" gap="$5" pb={20}>
                 <Text fontSize={28} fontWeight="600" color="$color">
                   Get into Fizzy
                 </Text>
@@ -73,6 +73,7 @@ export default function SignInScreen() {
                   color="$colorSubtle"
                   tt="uppercase"
                   ls={0.8}
+                  pb={10}
                 >
                   Email address
                 </Text>
