@@ -10,6 +10,8 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
     {
         builder.ToTable("Members");
 
+        builder.HasKey(m => m.Id);
+
         builder.HasIndex(m => new { m.TeamId, m.Role });
         builder.HasIndex(m => new { m.UserId, m.TeamId });
         builder.HasIndex(m => m.UserId);

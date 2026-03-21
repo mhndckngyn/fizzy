@@ -48,36 +48,37 @@ public static class CreateTeam
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPost(
-                "/api/teams",
-                async (ClaimsPrincipal user, CreateTeamRequest request, ISender sender) =>
-                {
-                    Guid? userId = user.GetUserId();
-
-                    if (userId is null)
+                    "/api/teams",
+                    async (ClaimsPrincipal user, CreateTeamRequest request, ISender sender) =>
                     {
-                        return Results.Unauthorized();
-                    }
+                        Guid? userId = user.GetUserId();
 
-                    CreateTeamCommand command = new(
-                        request.TeamName,
-                        userId.Value,
-                        request.MemberName
-                    );
+                        if (userId is null)
+                        {
+                            return Results.Unauthorized();
+                        }
 
-                    Result<CreateTeamResponse> result = await sender.Send(command);
-
-                    return result.IsFailed
-                        ? Results.BadRequest(
-                            new FailResponse<IEnumerable<string>>(
-                                result.Errors.Select(x => x.Message)
-                            )
-                        )
-                        : Results.Created(
-                            $"api/teams/{result.Value.TeamId}",
-                            new SuccessResponse<CreateTeamResponse>(result.Value)
+                        CreateTeamCommand command = new(
+                            request.TeamName,
+                            userId.Value,
+                            request.MemberName
                         );
-                }
-            );
+
+                        Result<CreateTeamResponse> result = await sender.Send(command);
+
+                        return result.IsFailed
+                            ? Results.BadRequest(
+                                new FailResponse<IEnumerable<string>>(
+                                    result.Errors.Select(x => x.Message)
+                                )
+                            )
+                            : Results.Created(
+                                $"/api/teams/{result.Value.TeamId}",
+                                new SuccessResponse<CreateTeamResponse>(result.Value)
+                            );
+                    }
+                )
+                .RequireAuthorization();
         }
     }
 }

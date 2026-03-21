@@ -10,6 +10,8 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
     {
         builder.ToTable("Teams");
 
+        builder.HasKey(t => t.Id);
+
         builder.Property(t => t.ExternalTeamId).UseIdentityColumn();
 
         builder.HasIndex(t => t.ExternalTeamId).IsUnique();

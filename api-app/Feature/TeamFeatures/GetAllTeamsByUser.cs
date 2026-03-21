@@ -39,29 +39,30 @@ public static class GetAllTeamsByUser
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapGet(
-                "/api/teams",
-                async (ClaimsPrincipal user, ISender sender) =>
-                {
-                    Guid? userId = user.GetUserId();
-
-                    if (userId is null)
+                    "/api/teams",
+                    async (ClaimsPrincipal user, ISender sender) =>
                     {
-                        return Results.Unauthorized();
-                    }
+                        Guid? userId = user.GetUserId();
 
-                    GetTeamsCommand command = new(userId.Value);
+                        if (userId is null)
+                        {
+                            return Results.Unauthorized();
+                        }
 
-                    Result<GetTeamsResponse> result = await sender.Send(command);
+                        GetTeamsCommand command = new(userId.Value);
 
-                    return result.IsFailed
-                        ? Results.BadRequest(
-                            new FailResponse<IEnumerable<string>>(
-                                result.Errors.Select(x => x.Message)
+                        Result<GetTeamsResponse> result = await sender.Send(command);
+
+                        return result.IsFailed
+                            ? Results.BadRequest(
+                                new FailResponse<IEnumerable<string>>(
+                                    result.Errors.Select(x => x.Message)
+                                )
                             )
-                        )
-                        : Results.Ok(new SuccessResponse<GetTeamsResponse>(result.Value));
-                }
-            );
+                            : Results.Ok(new SuccessResponse<GetTeamsResponse>(result.Value));
+                    }
+                )
+                .RequireAuthorization();
         }
     }
 }
