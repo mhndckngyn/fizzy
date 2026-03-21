@@ -5,6 +5,7 @@
 .idea/
 *.DotSettings.user
 [Bb]in/
+bin\\Debug/
 
 # User-specific files
 *.rsuser

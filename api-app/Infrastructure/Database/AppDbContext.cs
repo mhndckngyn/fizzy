@@ -9,6 +9,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationMember> NotificationMembers => Set<NotificationMember>();
 
+    public DbSet<Team> Teams => Set<Team>();
+
+    public DbSet<Member> Members => Set<Member>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
