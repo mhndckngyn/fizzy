@@ -6,7 +6,7 @@ import { Platform, TextInput } from "react-native";
 import { Button, Text, View, XStack, YStack } from "tamagui";
 
 const OTP_LENGTH = 6;
-const TIMER_SECONDS = 15 * 60;
+const TIMER_SECONDS = 10 * 60;
 
 export default function VerifyEmailScreen() {
   const { email = "hello@example.com" } = useLocalSearchParams<{
