@@ -11,10 +11,6 @@ import { TamaguiProvider } from "tamagui";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { tamaguiConfig } from "../tamagui.config";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
-
 const IS_LOGGED_IN = false;
 
 export default function RootLayout() {
@@ -27,14 +23,8 @@ export default function RootLayout() {
     >
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="signin" options={{ headerShown: false }} />
           <Stack.Screen name="teams" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
         </Stack>
 
         {!IS_LOGGED_IN && <Redirect href="/signin/signin" />}
