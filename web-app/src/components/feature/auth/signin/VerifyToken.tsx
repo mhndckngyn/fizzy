@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { verifyToken } from "@/types/signin/verify-token.type";
 import { useForm } from "@tanstack/react-form-nextjs";
-import { clear } from "console";
 import { useRouter } from "next/navigation";
 
 interface VerifyTokenProps {
@@ -32,7 +31,7 @@ export function VerifyToken({ email }: VerifyTokenProps) {
       onSubmit: verifyToken,
     },
     onSubmit: async ({ value }) => {
-      const { data, error } = await authClient.signIn.emailOtp({
+      const { error } = await authClient.signIn.emailOtp({
         email: email,
         otp: value.token,
       });
@@ -48,9 +47,9 @@ export function VerifyToken({ email }: VerifyTokenProps) {
   });
 
   return (
-    <Card className="ring-0 ">
+    <Card className="ring-0">
       <CardHeader className="flex items-center justify-center">
-        <CardTitle className="font-extrabold text-2xl">
+        <CardTitle className="text-2xl font-extrabold">
           Check your email
         </CardTitle>
       </CardHeader>
@@ -64,9 +63,8 @@ export function VerifyToken({ email }: VerifyTokenProps) {
             form.handleSubmit();
           }}
         >
-          <form.Field
-            name="token"
-            children={(field) => (
+          <form.Field name="token">
+            {(field) => (
               <Field>
                 <Input
                   id={field.name}
@@ -74,10 +72,8 @@ export function VerifyToken({ email }: VerifyTokenProps) {
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
-                    // Cập nhật giá trị mới vào form state
                     field.handleChange(e.target.value);
 
-                    // Kiểm tra độ dài của giá trị MỚI
                     if (e.target.value.length === 6) {
                       setTimeout(() => {
                         form.handleSubmit();
@@ -92,14 +88,14 @@ export function VerifyToken({ email }: VerifyTokenProps) {
                 />
               </Field>
             )}
-          />
+          </form.Field>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center justify-center gap-4 text-center">
         <CardDescription>
           <span>
             The code sent to{" "}
-            <span className="font-semibold text-foreground">{email}</span> will
+            <span className="text-foreground font-semibold">{email}</span> will
             work for 15 minutes.
           </span>
         </CardDescription>

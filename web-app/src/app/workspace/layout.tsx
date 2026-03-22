@@ -1,3 +1,5 @@
+import Footer from "@/components/layouts/Footer";
+import Header from "@/components/layouts/Header";
 import { authClient } from "@/lib/auth-client";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -7,7 +9,7 @@ export default async function WorkspaceLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { data, error } = await authClient.getSession({
+  const { data } = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
     },
@@ -17,5 +19,11 @@ export default async function WorkspaceLayout({
     redirect("/signin");
   }
 
-  return <div>{children}</div>;
+  return (
+    <div>
+      <Header />
+      {children}
+      <Footer />
+    </div>
+  );
 }

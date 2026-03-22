@@ -14,7 +14,7 @@ export default function SignInPage() {
     e.preventDefault();
     setError("");
 
-    const { data, error } = await authClient.emailOtp.sendVerificationOtp({
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
       email,
       type: "sign-in",
     });

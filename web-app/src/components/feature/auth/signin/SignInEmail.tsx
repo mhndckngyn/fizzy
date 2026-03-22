@@ -16,7 +16,6 @@ import { authClient } from "@/lib/auth-client";
 import { userLogin } from "@/types/signin/user-login.type";
 import { useForm } from "@tanstack/react-form-nextjs";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export function SignInEmail() {
@@ -46,9 +45,9 @@ export function SignInEmail() {
     },
   });
   return (
-    <Card className="ring-0 ">
+    <Card className="ring-0">
       <CardHeader className="flex items-center justify-center">
-        <CardTitle className="font-extrabold text-2xl">
+        <CardTitle className="text-2xl font-extrabold">
           Get into Fizzy
         </CardTitle>
       </CardHeader>
@@ -61,9 +60,8 @@ export function SignInEmail() {
             form.handleSubmit();
           }}
         >
-          <form.Field
-            name="email"
-            children={(field) => {
+          <form.Field name="email">
+            {(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
               return (
@@ -82,7 +80,7 @@ export function SignInEmail() {
                 </Field>
               );
             }}
-          />
+          </form.Field>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center justify-center gap-4 text-center">
@@ -90,7 +88,7 @@ export function SignInEmail() {
           <span>Enter your email and we`ll get you signed in.</span>
         </CardDescription>
         <Button size="lg" className="w-1/2" type="submit" form="signin-email">
-          Let's go
+          Let&apos;s go
           <ArrowRight />
         </Button>
       </CardFooter>
