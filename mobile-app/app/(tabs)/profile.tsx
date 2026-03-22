@@ -4,6 +4,7 @@ import { MenuItem } from "@/components/MenuItem";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { authClient } from "@/lib/auth-client";
+import { LogoutButton } from "@/components/logout/LogoutButton";
 
 export default function Profile() {
   const [boardsOpen, setBoardsOpen] = useState(true);
@@ -18,14 +19,7 @@ export default function Profile() {
     { id: 2, name: "mobile" },
     { id: 3, name: "web" },
   ]);
-  const handleLogout = async () => {
-    try {
-      await authClient.signOut();
-      console.log("Logged out");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
+
   return (
     <View
       style={{
@@ -171,17 +165,7 @@ export default function Profile() {
           marginTop: 16,
         }}
       >
-        <Pressable
-          onPress={handleLogout}
-          style={{
-            backgroundColor: "#ff4d4f",
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 10,
-          }}
-        >
-          <Text style={{ color: "white", fontWeight: "bold" }}>Logout</Text>
-        </Pressable>
+        <LogoutButton />
       </View>
     </View>
   );
