@@ -12,7 +12,13 @@ export default function AppMenuPopover() {
       <PopoverTrigger asChild>
         <Button variant="ghost">Fizzy</Button>
       </PopoverTrigger>
-      <PopoverContent side="bottom" align="center" sideOffset={-30} asChild>
+      <PopoverContent
+        className="w-97 gap-2 sm:w-110"
+        side="bottom"
+        align="center"
+        sideOffset={-30}
+        asChild
+      >
         <AppMenuContent />
       </PopoverContent>
     </Popover>
