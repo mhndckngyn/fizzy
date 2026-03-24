@@ -17,7 +17,7 @@ import {
 import { CommandGroup, CommandItem, useCommandState } from "cmdk";
 import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
-import { MENU_DATA_MOCK } from "./menuDataMock";
+import { MENU_BUTTON_DATA_MOCK, MENU_DATA_MOCK } from "./menuDataMock";
 import React, { useState } from "react";
 
 const teamName = "Team name";
@@ -28,6 +28,7 @@ const AppMenuContent = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >((props, ref) => {
   const menuData = MENU_DATA_MOCK;
+  const buttonData = MENU_BUTTON_DATA_MOCK;
 
   return (
     <Card ref={ref} {...props}>
@@ -42,15 +43,11 @@ const AppMenuContent = React.forwardRef<
             <CommandEmpty>No results found.</CommandEmpty>
 
             <CommandGroup className="**:[[cmdk-group-items]]:flex **:[[cmdk-group-items]]:flex-nowrap **:[[cmdk-group-items]]:justify-center **:[[cmdk-group-items]]:gap-2 **:[[cmdk-group-items]]:overflow-x-auto">
-              <CommandItem asChild>
-                <MenuButton text="Item 1" />
-              </CommandItem>
-              <CommandItem asChild>
-                <MenuButton text="Item 2" />
-              </CommandItem>
-              <CommandItem asChild>
-                <MenuButton text="Item 3" />
-              </CommandItem>
+              {buttonData.map((button) => (
+                <CommandItem key={button.id} value={button.text} asChild>
+                  <MenuButton text={button.text} icon={button.icon} />
+                </CommandItem>
+              ))}
             </CommandGroup>
 
             <CommandSeparator />
@@ -80,18 +77,23 @@ interface MenuButtonProps {
   text: string;
   icon?: React.ReactNode;
 }
-const MenuButton = ({ text, icon }: MenuButtonProps) => {
-  return (
-    <Button
-      variant="default"
-      size="lg"
-      className="h-auto max-w-30 min-w-10 flex-1"
-    >
-      {icon}
-      <span className="text-sm font-bold">{text}</span>
-    </Button>
-  );
-};
+const MenuButton = React.forwardRef<HTMLButtonElement, MenuButtonProps>(
+  ({ text, icon, ...props }, ref) => {
+    return (
+      <Button
+        ref={ref}
+        variant="default"
+        size="lg"
+        className="h-auto max-w-30 min-w-10 flex-1 flex-col py-3"
+        {...props}
+      >
+        {icon}
+        <span className="text-sm font-bold">{text}</span>
+      </Button>
+    );
+  },
+);
+MenuButton.displayName = "MenuButton";
 
 // Collapsible menu item
 export interface MenuCollapsibleItemProps {

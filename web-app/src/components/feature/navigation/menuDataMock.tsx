@@ -1,15 +1,6 @@
-import { Plus, LayoutTemplate, Tag, UserPlus, User } from "lucide-react";
-import { MenuCollapsibleItemProps } from "./AppMenuContent";
+import { Plus, LayoutTemplate, Tag, UserPlus, User, Home } from "lucide-react";
 
-// TODO: replace it with actual data source or API calls.
-
-export interface MenuGroupData {
-  id: string;
-  title: string;
-  items: MenuCollapsibleItemProps[];
-}
-
-export const MENU_DATA_MOCK: MenuGroupData[] = [
+export const MENU_DATA_MOCK = [
   {
     id: "group-boards",
     title: "BOARDS",
@@ -77,5 +68,23 @@ export const MENU_DATA_MOCK: MenuGroupData[] = [
         icon: <User />,
       },
     ],
+  },
+];
+
+export const MENU_BUTTON_DATA_MOCK = [
+  {
+    id: "home-button",
+    text: "Home",
+    icon: <Home />,
+  },
+  {
+    id: "assign-button",
+    text: "Assigned to me",
+    icon: <LayoutTemplate />,
+  },
+  {
+    id: "add-button",
+    text: "Added by me",
+    icon: <UserPlus />,
   },
 ];
