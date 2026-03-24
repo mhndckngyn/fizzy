@@ -1,6 +1,7 @@
-import { FizzyLogo } from "@/components/FizzyLogo";
+import { FizzyLogo } from "@/components/fizzy-logo";
 
 import { authClient } from "@/lib/auth-client";
+import { ArrowRight } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -10,7 +11,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Button, Input, Text, View, YStack } from "tamagui";
+import { Button, Input, Text, View, XStack, YStack } from "tamagui";
 
 export default function SignInScreen() {
   const [email, setEmail] = useState("");
@@ -33,7 +34,7 @@ export default function SignInScreen() {
     if (error) {
       setError(error.message || "Something went wrong.");
     } else {
-      router.push({ pathname: "/signin/verify", params: { email } });
+      router.push({ pathname: "/sign-in/verify", params: { email } });
     }
   };
 
@@ -109,9 +110,18 @@ export default function SignInScreen() {
                 opacity={!email.trim() || loading ? 0.45 : 1}
                 onPress={handleContinue}
               >
-                <Text col="white" fontSize={16} fontWeight="600">
-                  {loading ? "Sending…" : "Let's go →"}
-                </Text>
+                {loading ? (
+                  <Text col="white" fontSize={16} fontWeight="600">
+                    Loading...
+                  </Text>
+                ) : (
+                  <XStack alignItems="center" gap="$1">
+                    <Text col="white" fontSize={16} fontWeight="600">
+                      Let&apos;s go
+                    </Text>
+                    <ArrowRight col="white" size={16} />
+                  </XStack>
+                )}
               </Button>
             </YStack>
           </View>

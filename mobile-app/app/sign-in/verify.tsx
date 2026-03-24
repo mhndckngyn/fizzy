@@ -1,8 +1,10 @@
-import { FizzyLogo } from "@/components/FizzyLogo";
+import { FizzyLogo } from "@/components/fizzy-logo";
+import { useVerifyOtp } from "@/features/user/hooks";
 import { authClient } from "@/lib/auth-client";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowRight } from "@tamagui/lucide-icons-2";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Platform, TextInput } from "react-native";
+import { Keyboard, Platform, TextInput } from "react-native";
 import { Button, Text, View, XStack, YStack } from "tamagui";
 
 const OTP_LENGTH = 6;
@@ -12,35 +14,32 @@ export default function VerifyEmailScreen() {
   const { email = "hello@example.com" } = useLocalSearchParams<{
     email: string;
   }>();
-  const router = useRouter();
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
   const [isFocused, setIsFocused] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  async function verify() {
+  const { mutate: verify, isPending, error } = useVerifyOtp();
+
+  async function handleVerifyOtp() {
     if (!isComplete || isExpired) return;
-    setError("");
-    setLoading(true);
 
-    const { error } = await authClient.signIn.emailOtp({ email, otp });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message || "Invalid code. Please try again.");
-      setOtp("");
-      inputRef.current?.focus();
-    } else {
-      router.replace("/");
-    }
+    verify(
+      { email, otp },
+      {
+        onError: (err) => {
+          setOtp("");
+          inputRef.current?.focus();
+        },
+        onSuccess: () => {
+          // TODO
+        },
+      },
+    );
   }
 
   async function resend() {
     setOtp("");
-    setError("");
     setTimeLeft(TIMER_SECONDS);
 
     await authClient.emailOtp.sendVerificationOtp({
@@ -101,20 +100,19 @@ export default function VerifyEmailScreen() {
             onPress={() => inputRef.current?.focus()}
           >
             {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-              <View
-                key={i}
-                w={12}
-                h={12}
-                br="$10"
-                bg={
-                  otp[i]
-                    ? "$blue9"
-                    : i === otp.length && isFocused
-                      ? "$blue9"
-                      : "$borderColor"
-                }
-                opacity={i === otp.length && isFocused && !otp[i] ? 0.45 : 1}
-              />
+              <View key={i} w={24} h={30} ai="center" jc="center">
+                {otp[i] ? (
+                  <Text
+                    fontSize={20}
+                    fontWeight="600"
+                    color={otp[i] ? "$color" : "$placeholderColor"}
+                  >
+                    {otp[i]}
+                  </Text>
+                ) : (
+                  <View w={12} h={12} br="$10" bg="$borderColor" />
+                )}
+              </View>
             ))}
           </XStack>
 
@@ -123,8 +121,12 @@ export default function VerifyEmailScreen() {
             ref={inputRef}
             value={otp}
             onChangeText={(val) => {
-              setOtp(val.replace(/\D/g, "").slice(0, OTP_LENGTH));
-              if (error) setError("");
+              const cleaned = val.replace(/\D/g, "").slice(0, OTP_LENGTH);
+              setOtp(cleaned);
+
+              if (cleaned.length === OTP_LENGTH) {
+                Keyboard.dismiss();
+              }
             }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
@@ -190,13 +192,22 @@ export default function VerifyEmailScreen() {
           bg="$blue9"
           size="$5"
           br="$4"
-          disabled={!isComplete || isExpired || loading}
-          opacity={!isComplete || isExpired || loading ? 0.4 : 1}
-          onPress={verify}
+          disabled={!isComplete || isExpired || isPending}
+          opacity={!isComplete || isExpired || isPending ? 0.4 : 1}
+          onPress={handleVerifyOtp}
         >
-          <Text col="white" fontSize={16} fontWeight="600">
-            {loading ? "Verifying…" : "Verify code →"}
-          </Text>
+          {isPending ? (
+            <Text col="white" fontSize={16} fontWeight="600">
+              Verifying...
+            </Text>
+          ) : (
+            <XStack alignItems="center" gap="$1">
+              <Text col="white" fontSize={16} fontWeight="600">
+                Verify code
+              </Text>
+              <ArrowRight col="white" size={16} fontWeight={"600"} />
+            </XStack>
+          )}
         </Button>
 
         {/* Resend */}
