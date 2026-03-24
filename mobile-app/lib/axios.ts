@@ -1,11 +1,11 @@
 import axios from "axios";
 import { authClient } from "./auth-client";
 
-export const api = axios.create({
+export const axiosInstance = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
 });
 
-api.interceptors.request.use(async (config) => {
+axiosInstance.interceptors.request.use(async (config) => {
   const { data } = await authClient.token();
 
   if (data?.token) {
@@ -14,3 +14,8 @@ api.interceptors.request.use(async (config) => {
 
   return config;
 });
+
+export type ApiResponse<T> = {
+  data: T;
+  success: boolean;
+};
