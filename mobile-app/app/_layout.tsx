@@ -3,7 +3,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Redirect, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { TamaguiProvider } from "tamagui";
@@ -13,8 +13,6 @@ import { queryClient } from "@/lib/query-client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { tamaguiConfig } from "../tamagui.config";
 
-const IS_LOGGED_IN = false;
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -22,17 +20,16 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <TamaguiProvider
         config={tamaguiConfig}
-        defaultTheme={colorScheme === "dark" ? "dark" : "light"}
+        // defaultTheme={colorScheme === "dark" ? "dark" : "light"}
+        defaultTheme={"light"}
       >
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-          <Stack>
-            <Stack.Screen name="signin" options={{ headerShown: false }} />
-            <Stack.Screen name="teams" options={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="sign-in" />
+            <Stack.Screen name="(workspace)" />
           </Stack>
-
-          {!IS_LOGGED_IN && <Redirect href="/signin/signin" />}
 
           <StatusBar style="auto" />
         </ThemeProvider>
