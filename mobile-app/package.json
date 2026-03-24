@@ -17,10 +17,10 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
-    "@tamagui/config": "^2.0.0-rc.26",
-    "@tamagui/font-inter": "^2.0.0-rc.26",
-    "@tamagui/lucide-icons-2": "^2.0.0-rc.29",
-    "@tamagui/portal": "^2.0.0-rc.26",
+    "@tamagui/config": "2.0.0-rc.30",
+    "@tamagui/font-inter": "2.0.0-rc.30",
+    "@tamagui/lucide-icons-2": "2.0.0-rc.30",
+    "@tamagui/portal": "2.0.0-rc.30",
     "@tanstack/react-query": "^5.91.3",
     "axios": "^1.13.6",
     "better-auth": "^1.4.18",
@@ -48,13 +48,17 @@
     "react-native-svg": "^15.15.4",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
-    "tamagui": "^2.0.0-rc.26"
+    "tamagui": "2.0.0-rc.30"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0"
+  },
+  "resolutions": {
+    "@tamagui/core": "2.0.0-rc.30",
+    "@tamagui/web": "2.0.0-rc.30"
   },
   "private": true
 }
