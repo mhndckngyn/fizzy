@@ -10,5 +10,7 @@ public class Team : BaseEntity
 
     public long CardsCount { get; set; } = 0;
 
-    public ICollection<Member> Members { get; set; } = new List<Member>();
+    public ICollection<Member> Members { get; set; } = [];
+
+    public string? InvitationId { get; set; }
 }

@@ -15,5 +15,9 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
         builder.Property(t => t.ExternalTeamId).UseIdentityColumn();
 
         builder.HasIndex(t => t.ExternalTeamId).IsUnique();
+
+        builder.Property(t => t.InvitationId).HasMaxLength(14).IsRequired(false);
+
+        builder.HasIndex(t => t.InvitationId).IsUnique();
     }
 }
