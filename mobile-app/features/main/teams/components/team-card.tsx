@@ -10,7 +10,7 @@ function TeamCard({
   team: Team;
   onPress: (team: Team) => void;
 }) {
-  const { initials, color } = getTeamUI(team.name);
+  const { initials, color } = getTeamAvatar(team.name);
 
   return (
     <Pressable onPress={() => onPress(team)}>
@@ -76,7 +76,7 @@ function TeamCard({
   );
 }
 
-const getTeamUI = (name: string) => {
+const getTeamAvatar = (name: string) => {
   const initials = name
     .split(" ")
     .map((n) => n[0])

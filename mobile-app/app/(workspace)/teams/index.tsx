@@ -1,5 +1,5 @@
-import TeamCard from "@/features/teams/components/team-card";
-import { useTeams } from "@/features/teams/hooks";
+import TeamCard from "@/features/main/teams/components/team-card";
+import { useTeams } from "@/features/main/teams/hooks";
 import { useRouter } from "expo-router";
 import { FlatList, RefreshControl } from "react-native";
 import {
@@ -48,7 +48,7 @@ export default function TeamList() {
 
       <FlatList
         data={data?.teams || []}
-        keyExtractor={(t) => t.externalTeamId.toString()}
+        keyExtractor={(t) => t.id}
         contentContainerStyle={{ padding: 16, gap: 12 }}
         ListEmptyComponent={
           isLoading && !data ? (
