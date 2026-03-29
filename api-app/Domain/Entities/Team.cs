@@ -1,4 +1,5 @@
 using Domain.Common;
+using Domain.ValueObjects;
 
 namespace Domain.Entities;
 
@@ -10,5 +11,7 @@ public class Team : BaseEntity
 
     public long CardsCount { get; set; } = 0;
 
-    public ICollection<Member> Members { get; set; } = new List<Member>();
+    public ICollection<Member> Members { get; set; } = [];
+
+    public InvitationCode? InvitationCode { get; set; }
 }

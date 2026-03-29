@@ -15,7 +15,7 @@ public static class GetAllTeamsByUser
 
     internal sealed record GetTeamsResponse(List<TeamDto> Teams);
 
-    internal sealed record TeamDto(int ExternalTeamId, string Name, int MemberCount);
+    internal sealed record TeamDto(Guid TeamId, int ExternalTeamId, string Name, int MemberCount);
 
     internal class GetTeamsHandler(AppDbContext dbContext)
         : IRequestHandler<GetTeamsCommand, Result<GetTeamsResponse>>
@@ -27,7 +27,7 @@ public static class GetAllTeamsByUser
         {
             List<TeamDto> teams = await dbContext
                 .Teams.Where(t => t.Members.Any(m => m.UserId == request.UserId))
-                .Select(t => new TeamDto(t.ExternalTeamId, t.Name, t.Members.Count))
+                .Select(t => new TeamDto(t.Id, t.ExternalTeamId, t.Name, t.Members.Count))
                 .ToListAsync(cancellationToken);
 
             return Result.Ok(new GetTeamsResponse(teams));
