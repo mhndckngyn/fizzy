@@ -1,8 +1,8 @@
 import {
   useGetInvitationInfoMutation,
   useJoinTeam,
-} from "@/features/main/invitations/hooks";
-import { InvitationInfoResponse } from "@/features/main/invitations/types";
+} from "@/features/main/join/hooks";
+import { InvitationInfoResponse } from "@/features/main/join/types";
 import { ClipboardPaste } from "@tamagui/lucide-icons-2";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";

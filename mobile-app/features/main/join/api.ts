@@ -7,7 +7,7 @@ import {
 
 export async function getInvitationInfo(code: string) {
   const response = await axiosInstance.get<ApiResponse<InvitationInfoResponse>>(
-    `/api/invitations`,
+    `/api/teams/join`,
     { params: { invitionCode: code } },
   );
 
@@ -16,7 +16,7 @@ export async function getInvitationInfo(code: string) {
 
 export async function joinTeam(request: JoinTeamPayload) {
   const response = await axiosInstance.post<ApiResponse<JoinTeamResponse>>(
-    `/api/invitations/${request.invitationCode}/join`,
+    `/api/teams/join`,
     {
       invitationCode: request.invitationCode,
       memberName: request.memberName,
