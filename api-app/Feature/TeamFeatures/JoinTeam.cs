@@ -40,7 +40,12 @@ public static class JoinTeam
 
             if (team is null)
             {
-                return Result.Fail($"No team found with the provided invitation code.");
+                return Result.Fail(
+                    new Error($"No team found with the provided invitation code.").WithMetadata(
+                        "HttpCode",
+                        404
+                    )
+                );
             }
 
             // Kiểm tra xem người dùng đã là thành viên của team chưa
@@ -50,7 +55,12 @@ public static class JoinTeam
             );
             if (isAlreadyMember)
             {
-                return Result.Fail($"You are already a member of this team.");
+                return Result.Fail(
+                    new Error($"You are already a member of this team.").WithMetadata(
+                        "HttpCode",
+                        400
+                    )
+                );
             }
 
             // Thêm thành viên mới vào team
@@ -111,13 +121,7 @@ public static class JoinTeam
 
                         // Xử lý kết quả trả về từ handler
                         Result<JoinTeamResponse> result = await sender.Send(command);
-                        return result.IsFailed
-                            ? Results.BadRequest(
-                                new FailResponse<IEnumerable<string>>(
-                                    result.Errors.Select(x => x.Message)
-                                )
-                            )
-                            : Results.Ok(new SuccessResponse<JoinTeamResponse>(result.Value));
+                        return result.ToMinimalApiResult();
                     }
                 )
                 .RequireAuthorization();

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Carter;
+using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
@@ -29,7 +30,9 @@ public static class ReadNotification
 
             if (notificationMember is null)
             {
-                return Result.Fail("Notification not found for the user.");
+                return Result.Fail(
+                    new Error("Notification not found for the user.").WithMetadata("HttpCode", 404)
+                );
             }
 
             if (notificationMember.IsRead)
@@ -67,14 +70,7 @@ public static class ReadNotification
 
                         var result = await sender.Send(command);
 
-                        if (!result.IsSuccess)
-                        {
-                            return Results.NotFound(
-                                new { errors = result.Errors.Select(e => e.Message) }
-                            );
-                        }
-
-                        return Results.NoContent();
+                        return result.ToNoContentMinimalApiResult();
                     }
                 )
                 .RequireAuthorization();

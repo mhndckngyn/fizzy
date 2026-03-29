@@ -53,13 +53,7 @@ public static class GetAllTeamsByUser
 
                         Result<GetTeamsResponse> result = await sender.Send(command);
 
-                        return result.IsFailed
-                            ? Results.BadRequest(
-                                new FailResponse<IEnumerable<string>>(
-                                    result.Errors.Select(x => x.Message)
-                                )
-                            )
-                            : Results.Ok(new SuccessResponse<GetTeamsResponse>(result.Value));
+                        return result.ToMinimalApiResult();
                     }
                 )
                 .RequireAuthorization();

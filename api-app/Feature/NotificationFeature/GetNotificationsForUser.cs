@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Carter;
+using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
@@ -77,14 +78,7 @@ public static class GetNotificationsForUser
                         var query = new GetNotificationQuery(userId);
                         var result = await sender.Send(query);
 
-                        if (result.IsFailed)
-                        {
-                            return Results.BadRequest(
-                                new { errors = result.Errors.Select(e => e.Message) }
-                            );
-                        }
-
-                        return Results.Ok(result.Value);
+                        return result.ToMinimalApiResult();
                     }
                 )
                 .RequireAuthorization();

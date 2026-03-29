@@ -66,16 +66,7 @@ public static class CreateTeam
 
                         Result<CreateTeamResponse> result = await sender.Send(command);
 
-                        return result.IsFailed
-                            ? Results.BadRequest(
-                                new FailResponse<IEnumerable<string>>(
-                                    result.Errors.Select(x => x.Message)
-                                )
-                            )
-                            : Results.Created(
-                                $"/api/teams/{result.Value.TeamId}",
-                                new SuccessResponse<CreateTeamResponse>(result.Value)
-                            );
+                        return result.ToCreatedMinimalApiResult(val => $"/api/teams/{val.TeamId}");
                     }
                 )
                 .RequireAuthorization();

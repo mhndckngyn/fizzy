@@ -45,8 +45,10 @@ public static class GetTeamInfoFromInvitationCode
 
             if (teamResponse is null)
             {
-                return Result.Fail<GetTeamInfoResponse>(
-                    $"Team with invitation code {request.InvitationCode.Value} not found."
+                return Result.Fail(
+                    new Error(
+                        $"Team with invitation code {request.InvitationCode.Value} not found."
+                    ).WithMetadata("HttpCode", 404)
                 );
             }
 
@@ -87,13 +89,7 @@ public static class GetTeamInfoFromInvitationCode
 
                         Result<GetTeamInfoResponse> result = await sender.Send(command);
 
-                        return result.IsFailed
-                            ? Results.BadRequest(
-                                new FailResponse<IEnumerable<string>>(
-                                    result.Errors.Select(x => x.Message)
-                                )
-                            )
-                            : Results.Ok(new SuccessResponse<GetTeamInfoResponse>(result.Value));
+                        return result.ToMinimalApiResult();
                     }
                 )
                 .RequireAuthorization();

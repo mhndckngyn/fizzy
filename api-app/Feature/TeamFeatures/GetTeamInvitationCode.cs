@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Carter;
 using Domain.ValueObjects;
-using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
@@ -31,8 +30,11 @@ public static class GetTeamInvitationCode
 
             if (team is null)
             {
-                return Result.Fail<GetTeamInvitationCodeResponse>(
-                    $"Team with ID {request.TeamId} not found"
+                return Result.Fail(
+                    new Error($"Team with ID {request.TeamId} not found").WithMetadata(
+                        "HttpCode",
+                        404
+                    )
                 );
             }
 
@@ -43,8 +45,8 @@ public static class GetTeamInvitationCode
             );
             if (!isMember)
             {
-                return Result.Fail<GetTeamInvitationCodeResponse>(
-                    $"You are not a member of this team"
+                return Result.Fail(
+                    new Error($"You are not a member of this team").WithMetadata("HttpCode", 403)
                 );
             }
 
@@ -79,15 +81,7 @@ public static class GetTeamInvitationCode
 
                         Result<GetTeamInvitationCodeResponse> result = await sender.Send(command);
 
-                        return result.IsFailed
-                            ? Results.NotFound(
-                                new FailResponse<IEnumerable<string>>(
-                                    result.Errors.Select(x => x.Message)
-                                )
-                            )
-                            : Results.Ok(
-                                new SuccessResponse<GetTeamInvitationCodeResponse>(result.Value)
-                            );
+                        return result.ToMinimalApiResult();
                     }
                 )
                 .RequireAuthorization();
