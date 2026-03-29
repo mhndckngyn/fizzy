@@ -7,8 +7,7 @@ import {
 
 export async function getInvitationInfo(code: string) {
   const response = await axiosInstance.get<ApiResponse<InvitationInfoResponse>>(
-    `/api/teams/join`,
-    { params: { invitionCode: code } },
+    `/api/teams/join/${code}`,
   );
 
   return response.data.data;
