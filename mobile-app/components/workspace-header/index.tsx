@@ -1,34 +1,16 @@
-import {
-  ClipboardList,
-  Home,
-  LogOut,
-  Plus,
-  Settings,
-  UserPlus,
-} from "@tamagui/lucide-icons-2";
 import React from "react";
-import {
-  Accordion,
-  Adapt,
-  Button,
-  Input,
-  Popover,
-  ScrollView,
-  Separator,
-  Sheet,
-  Text,
-  XStack,
-  YStack,
-} from "tamagui";
+import { Adapt, Button, Popover, Sheet, Text, XStack, YStack } from "tamagui";
 
-import { useSignOut } from "@/features/user/hooks";
+import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { FizzyLogo } from "../fizzy-logo";
-import AccordionSection from "./accordion-section";
-import IconButton from "./icon-button";
-import NavButton from "./nav-button";
+import GlobalPopoverContent from "./global-popover-content";
+import TeamPopoverContent from "./team-popover-content";
+import BasePopoverLayout from "./base-popover-layout";
+import { useHeaderStore } from "./use-header-store";
 
 export default function WorkspaceHeader() {
-  const { mutate: signOut, isPending } = useSignOut();
+  const { teamId } = useCurrentTeamParams();
+  const { leftAction, rightAction } = useHeaderStore();
 
   return (
     <YStack
@@ -38,10 +20,27 @@ export default function WorkspaceHeader() {
     >
       <XStack
         height={60}
-        justifyContent="center"
         alignItems="center"
         paddingHorizontal="$2"
+        justifyContent="space-between"
       >
+        {/* LEFT SLOT */}
+        <XStack width={50} justifyContent="flex-start">
+          {leftAction && (
+            <Button
+              circular
+              size="$3"
+              backgroundColor="$accentBackground"
+              onPress={leftAction.onPress}
+              pressStyle={{ opacity: 0.8, scale: 0.95 }}
+              padding={0}
+            >
+              <leftAction.icon size={22} />
+            </Button>
+          )}
+        </XStack>
+
+        {/* CENTER SLOT - The Popover Trigger */}
         <Popover size="$5" allowFlip placement="bottom-start">
           <Popover.Trigger asChild>
             <Button
@@ -64,9 +63,8 @@ export default function WorkspaceHeader() {
             </Button>
           </Popover.Trigger>
 
-          {/* 2. Content logic remains the same, but 'modal' prop on Popover helps with layering */}
           <Adapt when="sm" platform="touch">
-            <Sheet modal dismissOnSnapToBottom /*  animation="bouncy" */>
+            <Sheet modal dismissOnSnapToBottom>
               <Sheet.Frame padding="$3">
                 <Adapt.Contents />
               </Sheet.Frame>
@@ -82,62 +80,29 @@ export default function WorkspaceHeader() {
             elevate
             padding={0}
             width={320}
-            zIndex={100000} // Ensure it stays on top
+            zIndex={100000}
           >
-            <ScrollView
-              maxHeight={600}
-              borderRadius="$4"
-              backgroundColor="$background"
-            >
-              <YStack padding="$1" gap="$4">
-                {/* Search Input */}
-                <Input
-                  placeholder="Type to jump to a board"
-                  backgroundColor="$backgroundHover"
-                  size="$4"
-                  color="$color"
-                  placeholderTextColor="$gray10"
-                />
-
-                {/* Top Navigation Grid */}
-                <XStack gap="$2" justifyContent="space-between">
-                  <NavButton icon={Home} label="Home" active />
-                  <NavButton icon={ClipboardList} label="Assigned" />
-                  <NavButton icon={UserPlus} label="Added" />
-                </XStack>
-
-                <Accordion defaultValue={["boards", "people"]} type="multiple">
-                  <AccordionSection value="boards" title="BOARDS">
-                    <YStack gap="$1">
-                      <IconButton icon={Plus} label="Add a board" />
-                    </YStack>
-                  </AccordionSection>
-
-                  <Separator marginVertical="$2" />
-
-                  <AccordionSection value="people" title="PEOPLE">
-                    <YStack gap="$1">
-                      <IconButton icon={Plus} label="Invite people" />
-                    </YStack>
-                  </AccordionSection>
-
-                  <Separator marginVertical="$2" />
-
-                  <AccordionSection value="settings" title="SETTINGS">
-                    <YStack gap="$1">
-                      <IconButton icon={Settings} label="Account Settings" />
-                      <IconButton
-                        onPress={signOut}
-                        icon={LogOut}
-                        label="Sign out"
-                      />
-                    </YStack>
-                  </AccordionSection>
-                </Accordion>
-              </YStack>
-            </ScrollView>
+            <BasePopoverLayout>
+              {teamId && <TeamPopoverContent teamId={teamId} />}
+              <GlobalPopoverContent />
+            </BasePopoverLayout>
           </Popover.Content>
         </Popover>
+
+        {/* RIGHT SLOT */}
+        <XStack width={50} justifyContent="flex-end">
+          {rightAction && (
+            <Button
+              circular
+              backgroundColor="$accentBackground"
+              size="$3"
+              pressStyle={{ opacity: 0.8, scale: 0.95 }}
+              onPress={rightAction.onPress}
+            >
+              <rightAction.icon size={22} />
+            </Button>
+          )}
+        </XStack>
       </XStack>
     </YStack>
   );

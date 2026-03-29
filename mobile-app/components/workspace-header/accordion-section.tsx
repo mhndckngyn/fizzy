@@ -20,9 +20,8 @@ const AccordionSection = ({
       paddingHorizontal={0}
       backgroundColor="transparent"
       borderWidth={0}
-      // Remove default padding/focus styles if needed
       px={"$2"}
-      py={"$3"}
+      py={"$2"}
       focusStyle={{ backgroundColor: "transparent" }}
     >
       {({ open }: { open: boolean }) => (
@@ -36,7 +35,7 @@ const AccordionSection = ({
           />
           <Text
             fontWeight="800"
-            fontSize={12}
+            fontSize={14}
             color="$gray10"
             letterSpacing={0.5}
             textTransform="uppercase"

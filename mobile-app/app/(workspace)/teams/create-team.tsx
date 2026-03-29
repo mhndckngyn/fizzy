@@ -76,6 +76,7 @@ export default function CreateTeam() {
                   </Label>
                   <Input
                     placeholder="Apollo Crew"
+                    placeholderTextColor="$color8"
                     value={teamName}
                     onChangeText={setTeamName}
                     size="$4"
@@ -89,6 +90,7 @@ export default function CreateTeam() {
                   </Label>
                   <Input
                     placeholder="What should others call you?"
+                    placeholderTextColor="$color8"
                     value={memberName}
                     onChangeText={setMemberName}
                     size="$4"

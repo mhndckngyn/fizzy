@@ -47,7 +47,7 @@ export default function TeamList() {
               hoverStyle={{ bg: "$blue10" }}
               pressStyle={{ bg: "$blue8" }}
             >
-              Join
+              <Text fontWeight="bold">Join</Text>
             </Button>
           </Theme>
 
@@ -60,7 +60,7 @@ export default function TeamList() {
             onPress={() => router.push("/teams/create-team")}
             icon={Plus}
           >
-            New
+            <Text fontWeight="bold">New</Text>
           </Button>
         </XStack>
       </XStack>
@@ -77,9 +77,11 @@ export default function TeamList() {
               <Spinner size="large" color="$blue10" />
             </YStack>
           ) : !isLoading ? (
-            <YStack ai="center" pt="$10" opacity={0.5}>
+            <YStack ai="center" pt="$10" opacity={0.5} gap="$4">
               <Text fontSize={40}>☁️</Text>
-              <Text ta="center">No teams found.</Text>
+              <Text ta="center" fontSize="$4">
+                No teams found.
+              </Text>
             </YStack>
           ) : null
         }
@@ -95,7 +97,7 @@ export default function TeamList() {
           <TeamCard
             key={item.teamId}
             team={item}
-            onPress={(t) => console.log("TODO")}
+            onPress={(t) => router.push(`/teams/${item.teamId}`)}
           />
         )}
       />
