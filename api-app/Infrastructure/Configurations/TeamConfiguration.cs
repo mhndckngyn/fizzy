@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,8 +17,14 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
 
         builder.HasIndex(t => t.ExternalTeamId).IsUnique();
 
-        builder.Property(t => t.InvitationId).HasMaxLength(14).IsRequired(false);
+        builder
+            .Property(t => t.InvitationCode)
+            .HasConversion(
+                code => code == null ? null : code.Value, // Lưu databse
+                value => value == null ? null : InvitationCode.Parse(value).Value // Đọc từ dattabase
+            )
+            .HasMaxLength(14);
 
-        builder.HasIndex(t => t.InvitationId).IsUnique();
+        builder.HasIndex(t => t.InvitationCode).IsUnique();
     }
 }

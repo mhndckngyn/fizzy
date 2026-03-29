@@ -1,4 +1,5 @@
 using Domain.Common;
+using Domain.ValueObjects;
 
 namespace Domain.Entities;
 
@@ -12,5 +13,5 @@ public class Team : BaseEntity
 
     public ICollection<Member> Members { get; set; } = [];
 
-    public string? InvitationId { get; set; }
+    public InvitationCode? InvitationCode { get; set; }
 }
