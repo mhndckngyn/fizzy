@@ -69,7 +69,7 @@ export default function TeamList() {
 
       <FlatList
         data={data?.teams || []}
-        keyExtractor={(t) => t.id}
+        keyExtractor={(t) => t.teamId}
         contentContainerStyle={{ padding: 16, gap: 12 }}
         ListEmptyComponent={
           isLoading && !data ? (
@@ -93,7 +93,7 @@ export default function TeamList() {
         }
         renderItem={({ item }) => (
           <TeamCard
-            key={item.id}
+            key={item.teamId}
             team={item}
             onPress={(t) => console.log("TODO")}
           />

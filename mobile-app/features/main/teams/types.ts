@@ -1,5 +1,5 @@
 export type Team = {
-  id: string;
+  teamId: string;
   name: string;
   memberCount: number;
   // TODO: Latest activity
@@ -15,6 +15,6 @@ export type TeamCreatePayload = {
 };
 
 export type TeamCreateResponse = {
-  id: string;
+  teamId: string;
   memberId: string;
 };
