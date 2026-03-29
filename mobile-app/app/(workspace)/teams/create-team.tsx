@@ -1,7 +1,6 @@
-import { useCreateTeam } from "@/features/teams/hooks";
-import { useSession } from "@/features/user/hooks";
+import { useCreateTeam } from "@/features/main/teams/hooks";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -15,27 +14,9 @@ export default function CreateTeam() {
   const router = useRouter();
 
   const { mutate, isPending, error } = useCreateTeam();
-  const { data: user } = useSession();
 
   const [teamName, setTeamName] = useState("");
   const [memberName, setMemberName] = useState("");
-
-  useEffect(() => {
-    let memberNameFromSession;
-
-    if (user?.name) {
-      memberNameFromSession = user.name;
-    }
-
-    if (user?.email) {
-      memberNameFromSession = user.email.split("@")[0];
-    }
-
-    if (memberNameFromSession) {
-      setMemberName(memberNameFromSession);
-      setTeamName(`${memberNameFromSession}'s Fizzy`);
-    }
-  }, [user]);
 
   const handleCreate = () => {
     if (!teamName.trim()) return;
@@ -44,7 +25,7 @@ export default function CreateTeam() {
       { teamName, memberName },
       {
         onSuccess: () => {
-          router.replace("/teams");
+          router.replace("/teams"); // TODO redirect to teams/teamId using data
         },
       },
     );
@@ -90,11 +71,11 @@ export default function CreateTeam() {
               <YStack gap="$2">
                 {/* Team Name Field */}
                 <YStack gap="$0.5">
-                  <Label fontSize={12} col="$colorSubtle" fontWeight="600">
+                  <Label fontSize={12} col="$colorSubtle" fontWeight="bold">
                     TEAM NAME
                   </Label>
                   <Input
-                    placeholder="e.g. Apollo Crew"
+                    placeholder="Apollo Crew"
                     value={teamName}
                     onChangeText={setTeamName}
                     size="$4"
@@ -103,11 +84,11 @@ export default function CreateTeam() {
 
                 {/* Member Name Field */}
                 <YStack gap="$0.5">
-                  <Label fontSize={12} col="$colorSubtle" fontWeight="600">
+                  <Label fontSize={12} col="$colorSubtle" fontWeight="bold">
                     DISPLAY NAME
                   </Label>
                   <Input
-                    placeholder="Your name"
+                    placeholder="What should others call you?"
                     value={memberName}
                     onChangeText={setMemberName}
                     size="$4"
@@ -116,26 +97,18 @@ export default function CreateTeam() {
               </YStack>
 
               {/* Actions */}
-              <YStack gap="$3">
-                <Button
-                  bg="$blue9"
-                  size="$4"
-                  br="$5"
-                  onPress={handleCreate}
-                  disabled={!teamName.trim() || isPending}
-                  opacity={!teamName.trim() || isPending ? 0.5 : 1}
-                >
-                  <Text col="white" fontSize={16} fontWeight="700">
-                    {isPending ? "Creating..." : "Create Team"}
-                  </Text>
-                </Button>
-
-                <Button chromeless size="$4" onPress={() => router.back()}>
-                  <Text col="$colorSubtle" fontSize={14}>
-                    Cancel
-                  </Text>
-                </Button>
-              </YStack>
+              <Button
+                bg="$blue9"
+                size="$4"
+                br="$5"
+                onPress={handleCreate}
+                disabled={!teamName.trim() || isPending}
+                opacity={!teamName.trim() || isPending ? 0.5 : 1}
+              >
+                <Text col="white" fontSize={16} fontWeight="700">
+                  {isPending ? "Creating..." : "Create Team"}
+                </Text>
+              </Button>
             </YStack>
           </View>
         </ScrollView>

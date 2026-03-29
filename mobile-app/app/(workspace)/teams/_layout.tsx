@@ -5,6 +5,7 @@ export default function TeamsLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="create-team" />
+      <Stack.Screen name="join-team" />
     </Stack>
   );
 }

@@ -1,5 +1,6 @@
-import TeamCard from "@/features/teams/components/team-card";
-import { useTeams } from "@/features/teams/hooks";
+import TeamCard from "@/features/main/teams/components/team-card";
+import { useTeams } from "@/features/main/teams/hooks";
+import { Plus, Users } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import { FlatList, RefreshControl } from "react-native";
 import {
@@ -7,6 +8,7 @@ import {
   Separator,
   Spinner,
   Text,
+  Theme,
   View,
   XStack,
   YStack,
@@ -34,21 +36,40 @@ export default function TeamList() {
             Select a workspace
           </Text>
         </YStack>
-        <Button
-          size="$3"
-          br="$4"
-          theme="blue"
-          onPress={() => router.push("/teams/create-team")}
-        >
-          New
-        </Button>
+        <XStack gap="$2">
+          <Theme name="dark">
+            <Button
+              size="$3"
+              br="$4"
+              bg="$blue9"
+              onPress={() => router.push("/teams/join-team")}
+              icon={Users}
+              hoverStyle={{ bg: "$blue10" }}
+              pressStyle={{ bg: "$blue8" }}
+            >
+              Join
+            </Button>
+          </Theme>
+
+          <Button
+            size="$3"
+            br="$4"
+            theme="alt1"
+            borderWidth={1}
+            borderColor="$borderColor"
+            onPress={() => router.push("/teams/create-team")}
+            icon={Plus}
+          >
+            New
+          </Button>
+        </XStack>
       </XStack>
 
       <Separator bc="$borderColor" />
 
       <FlatList
         data={data?.teams || []}
-        keyExtractor={(t) => t.externalTeamId.toString()}
+        keyExtractor={(t) => t.teamId}
         contentContainerStyle={{ padding: 16, gap: 12 }}
         ListEmptyComponent={
           isLoading && !data ? (
@@ -71,7 +92,11 @@ export default function TeamList() {
           />
         }
         renderItem={({ item }) => (
-          <TeamCard team={item} onPress={(t) => console.log("TODO")} />
+          <TeamCard
+            key={item.teamId}
+            team={item}
+            onPress={(t) => console.log("TODO")}
+          />
         )}
       />
     </View>
