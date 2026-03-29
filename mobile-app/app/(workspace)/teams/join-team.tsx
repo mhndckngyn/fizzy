@@ -118,6 +118,7 @@ export default function JoinTeamPage() {
                         value={code}
                         onChangeText={setCode}
                         placeholder="XXXX-XXXX-XXXX"
+                        placeholderTextColor="$color8"
                         autoCapitalize="none"
                         autoCorrect={false}
                       />
