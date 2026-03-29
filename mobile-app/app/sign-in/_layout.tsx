@@ -7,7 +7,7 @@ export default function SigninLayout() {
   if (isLoading) return null;
 
   if (user) {
-    return <Redirect href="/(workspace)/teams" />;
+    return <Redirect href="/teams" />;
   }
 
   return (

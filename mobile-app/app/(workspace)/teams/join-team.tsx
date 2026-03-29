@@ -76,7 +76,7 @@ export default function JoinTeamPage() {
     if (!memberName) return;
     try {
       await performJoin({ invitationCode: code, memberName });
-      router.replace("/(workspace)/teams");
+      router.replace("/teams");
     } catch (e: any) {
       Alert.alert("Error", e.message || "Failed to join team.");
     }

@@ -25,7 +25,7 @@ export default function CreateTeam() {
       { teamName, memberName },
       {
         onSuccess: () => {
-          router.replace("/teams");
+          router.replace("/teams"); // TODO redirect to teams/teamId using data
         },
       },
     );
