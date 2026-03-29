@@ -7,7 +7,6 @@ using FluentResults;
 using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using static Feature.TeamFeatures.GetTeamInfo;
 
 namespace Feature.TeamFeatures;
 

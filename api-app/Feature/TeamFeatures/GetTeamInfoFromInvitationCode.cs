@@ -10,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Feature.TeamFeatures;
 
-public static class GetTeamInfo
+public static class GetTeamInfoFromInvitationCode
 {
-    internal sealed record GetTeamInfoCommand(Guid TeamId, Guid UserId)
+    internal sealed record GetTeamInfoCommand(InvitationCode InvitationCode)
         : IRequest<Result<GetTeamInfoResponse>>;
 
     internal sealed record GetTeamInfoResponse(
@@ -31,47 +31,26 @@ public static class GetTeamInfo
             CancellationToken cancellationToken
         )
         {
-            var team = await dbContext
-                .Teams.Where(t => t.Id == request.TeamId)
+            var teamResponse = await dbContext
+                .Teams.AsNoTracking()
+                .Where(t => t.InvitationCode == request.InvitationCode)
+                .Select(t => new GetTeamInfoResponse(
+                    t.Id,
+                    t.ExternalTeamId,
+                    t.Name,
+                    t.Members.Count,
+                    t.InvitationCode!.Value
+                ))
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (team is null)
+            if (teamResponse is null)
             {
-                return Result.Fail<GetTeamInfoResponse>($"Team with ID {request.TeamId} not found");
+                return Result.Fail<GetTeamInfoResponse>(
+                    $"Team with invitation code {request.InvitationCode.Value} not found."
+                );
             }
 
-            // Kiểm tra xem người dùng có phải là thành viên của team không
-            bool isMember = await dbContext.Members.AnyAsync(
-                m => m.TeamId == request.TeamId && m.UserId == request.UserId,
-                cancellationToken
-            );
-            if (!isMember)
-            {
-                return Result.Fail<GetTeamInfoResponse>($"You are not a member of this team");
-            }
-
-            int memberCount = await dbContext.Members.CountAsync(
-                m => m.TeamId == team.Id,
-                cancellationToken
-            );
-
-            // Nếu chưa có InvitationCode, tạo mới và lưu vào database
-            InvitationCode invitationCode = await CreateInvitationCode.GetOrGenerateAsync(
-                dbContext,
-                team,
-                cancellationToken
-            );
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            return Result.Ok(
-                new GetTeamInfoResponse(
-                    team.Id,
-                    team.ExternalTeamId,
-                    team.Name,
-                    memberCount,
-                    invitationCode.Value
-                )
-            );
+            return Result.Ok(teamResponse);
         }
     }
 
@@ -80,8 +59,8 @@ public static class GetTeamInfo
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapGet(
-                    "/api/teams/{teamId}/info",
-                    async (ClaimsPrincipal user, Guid teamId, ISender sender) =>
+                    "/api/teams/join/{invitationCode}",
+                    async (ClaimsPrincipal user, string invitationCode, ISender sender) =>
                     {
                         Guid? userId = user.GetUserId();
 
@@ -90,7 +69,21 @@ public static class GetTeamInfo
                             return Results.Unauthorized();
                         }
 
-                        GetTeamInfoCommand command = new(teamId, userId.Value);
+                        // Validate InvitationCode
+                        Result<InvitationCode> invitationCodeResult = InvitationCode.Parse(
+                            invitationCode
+                        );
+
+                        if (invitationCodeResult.IsFailed)
+                        {
+                            return Results.BadRequest(
+                                new FailResponse<IEnumerable<string>>(
+                                    invitationCodeResult.Errors.Select(x => x.Message)
+                                )
+                            );
+                        }
+
+                        GetTeamInfoCommand command = new(invitationCodeResult.Value);
 
                         Result<GetTeamInfoResponse> result = await sender.Send(command);
 
