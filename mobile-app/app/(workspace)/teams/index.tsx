@@ -42,7 +42,7 @@ export default function TeamList() {
               size="$3"
               br="$4"
               bg="$blue9"
-              onPress={() => router.push("/teams/join-team")}
+              onPress={() => router.push("/teams/join")}
               icon={Users}
               hoverStyle={{ bg: "$blue10" }}
               pressStyle={{ bg: "$blue8" }}
@@ -57,7 +57,7 @@ export default function TeamList() {
             theme="alt1"
             borderWidth={1}
             borderColor="$borderColor"
-            onPress={() => router.push("/teams/create-team")}
+            onPress={() => router.push("/teams/create")}
             icon={Plus}
           >
             <Text fontWeight="bold">New</Text>

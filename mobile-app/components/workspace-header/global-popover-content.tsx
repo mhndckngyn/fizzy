@@ -26,7 +26,7 @@ export default function GlobalPopoverContent() {
             <IconButton
               icon={Plus}
               label="Create a team"
-              onPress={() => router.push("/teams/create-team")}
+              onPress={() => router.push("/teams/create")}
             />
 
             {data?.teams.map((team) => (
