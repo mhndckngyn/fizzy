@@ -1,4 +1,11 @@
-import { ClipboardList, Home, Plus, UserPlus } from "@tamagui/lucide-icons-2";
+import { useBoards } from "@/features/main/boards/hooks";
+import {
+  ClipboardList,
+  Home,
+  Kanban,
+  Plus,
+  UserPlus,
+} from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import { Accordion, Input, Separator, XStack, YStack } from "tamagui";
 import AccordionSection from "./accordion-section";
@@ -11,6 +18,7 @@ interface Props {
 
 export default function TeamPopoverContent({ teamId }: Props) {
   const router = useRouter();
+  const { data: boardsData, isFetching: isLoadingTeams } = useBoards();
 
   return (
     <>
@@ -35,6 +43,17 @@ export default function TeamPopoverContent({ teamId }: Props) {
               label="Add a board"
               onPress={() => router.push(`/teams/${teamId}/boards/create`)}
             />
+
+            {boardsData?.boards.map((board) => (
+              <IconButton
+                key={board.id}
+                icon={Kanban}
+                label={board.name}
+                onPress={() =>
+                  router.push(`/teams/${teamId}/boards/${board.id}`)
+                }
+              />
+            ))}
           </YStack>
         </AccordionSection>
 
