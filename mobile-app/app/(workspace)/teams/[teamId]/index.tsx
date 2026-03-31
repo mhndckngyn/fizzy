@@ -1,10 +1,14 @@
 import { useHeaderStore } from "@/components/workspace-header/use-header-store";
+import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { Plus, SquareKanban } from "@tamagui/lucide-icons-2";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback } from "react";
 import { Text, View } from "tamagui";
 
 export default function TeamHomepage() {
+  const router = useRouter();
+  const { teamId } = useCurrentTeamParams();
+
   const setHeader = useHeaderStore((s) => s.setHeader);
   const resetHeader = useHeaderStore((s) => s.resetHeader);
 
@@ -17,12 +21,12 @@ export default function TeamHomepage() {
         },
         rightAction: {
           icon: SquareKanban,
-          onPress: () => console.log("TODO: Navigate to add board"),
+          onPress: () => router.push(`/teams/${teamId}/boards/create`),
         },
       });
 
       return resetHeader;
-    }, [setHeader, resetHeader]),
+    }, [teamId, setHeader, resetHeader, router]),
   );
 
   return (

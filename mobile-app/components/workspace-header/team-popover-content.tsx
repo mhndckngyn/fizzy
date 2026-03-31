@@ -1,4 +1,5 @@
 import { ClipboardList, Home, Plus, UserPlus } from "@tamagui/lucide-icons-2";
+import { useRouter } from "expo-router";
 import { Accordion, Input, Separator, XStack, YStack } from "tamagui";
 import AccordionSection from "./accordion-section";
 import IconButton from "./icon-button";
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export default function TeamPopoverContent({ teamId }: Props) {
+  const router = useRouter();
+
   return (
     <>
       <Input
@@ -27,7 +30,11 @@ export default function TeamPopoverContent({ teamId }: Props) {
       <Accordion mt="$2" defaultValue={["boards", "people"]} type="multiple">
         <AccordionSection value="boards" title="BOARDS">
           <YStack>
-            <IconButton icon={Plus} label="Add a board" />
+            <IconButton
+              icon={Plus}
+              label="Add a board"
+              onPress={() => router.push(`/teams/${teamId}/boards/create`)}
+            />
           </YStack>
         </AccordionSection>
 
