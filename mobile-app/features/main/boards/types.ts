@@ -1,5 +1,5 @@
 export type Board = {
-  id: string;
+  boardId: string;
   name: string;
 };
 
@@ -9,4 +9,4 @@ export type BoardListResponse = {
 
 export type BoardCreatePayload = Pick<Board, "name">;
 
-export type BoardCreateResponse = Pick<Board, "id">;
+export type BoardCreateResponse = Pick<Board, "boardId">;

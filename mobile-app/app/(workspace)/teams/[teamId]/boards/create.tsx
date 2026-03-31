@@ -1,3 +1,4 @@
+import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useCreateBoard } from "@/features/main/boards/hooks";
 import { ArrowRight } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
@@ -14,6 +15,8 @@ import { Button, Input, Text, View, XStack, YStack } from "tamagui";
 export default function CreateBoard() {
   const router = useRouter();
 
+  const { teamId } = useCurrentTeamParams();
+
   const { mutate, isPending, error } = useCreateBoard();
 
   const [boardName, setBoardName] = useState("");
@@ -26,8 +29,8 @@ export default function CreateBoard() {
     mutate(
       { name: boardName },
       {
-        onSuccess: () => {
-          // TODO redirect to board
+        onSuccess: (data) => {
+          router.push(`/teams/${teamId}/boards/${data.boardId}`);
         },
       },
     );

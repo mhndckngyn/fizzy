@@ -46,11 +46,11 @@ export default function TeamPopoverContent({ teamId }: Props) {
 
             {boardsData?.boards.map((board) => (
               <IconButton
-                key={board.id}
+                key={board.boardId}
                 icon={Kanban}
                 label={board.name}
                 onPress={() =>
-                  router.push(`/teams/${teamId}/boards/${board.id}`)
+                  router.push(`/teams/${teamId}/boards/${board.boardId}`)
                 }
               />
             ))}

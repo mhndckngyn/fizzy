@@ -7,7 +7,7 @@ import {
 
 export async function getBoards(teamId: string) {
   const response = await axiosInstance.get<ApiResponse<BoardListResponse>>(
-    `/teams/${teamId}/boards`,
+    `/api/teams/${teamId}/boards`,
   );
 
   return response.data.data;
@@ -15,7 +15,7 @@ export async function getBoards(teamId: string) {
 
 export async function createBoard(teamId: string, request: BoardCreatePayload) {
   const response = await axiosInstance.post<ApiResponse<BoardCreateResponse>>(
-    `/teams/${teamId}/boards`,
+    `/api/teams/${teamId}/boards`,
     request,
   );
 

@@ -1,10 +1,10 @@
 import React from "react";
-import { View } from "tamagui";
+import { Text, View } from "tamagui";
 
 export default function KanbanBoard() {
   return (
     <View flex={1} bg="$background" py="$2">
-      Where is my Kanban??
+      <Text>Where is my Kanban??</Text>
     </View>
   );
 }
