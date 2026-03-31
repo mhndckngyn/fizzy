@@ -1,7 +1,5 @@
-import React from "react";
-import { Accordion, Separator, YStack } from "tamagui";
-import AccordionSection from "./accordion-section";
-import IconButton from "./icon-button";
+import { useTeams } from "@/features/main/teams/hooks";
+import { useSignOut } from "@/features/user/hooks";
 import {
   Building2,
   LogOut,
@@ -9,13 +7,15 @@ import {
   Settings,
   UserRoundCog,
 } from "@tamagui/lucide-icons-2";
-import { useSignOut } from "@/features/user/hooks";
-import { useTeams } from "@/features/main/teams/hooks";
 import { useRouter } from "expo-router";
+import React from "react";
+import { Accordion, Separator, YStack } from "tamagui";
+import AccordionSection from "./accordion-section";
+import IconButton from "./icon-button";
 
 export default function GlobalPopoverContent() {
   const router = useRouter();
-  const { data, isFetching: isLoadingTeams } = useTeams();
+  const { data: teamsData, isFetching: isLoadingTeams } = useTeams();
   const { mutate: signOut, isPending: isSigningOut } = useSignOut();
 
   return (
@@ -26,10 +26,10 @@ export default function GlobalPopoverContent() {
             <IconButton
               icon={Plus}
               label="Create a team"
-              onPress={() => router.push("/teams/create-team")}
+              onPress={() => router.push("/teams/create")}
             />
 
-            {data?.teams.map((team) => (
+            {teamsData?.teams.map((team) => (
               <IconButton
                 key={team.teamId}
                 icon={Building2}
