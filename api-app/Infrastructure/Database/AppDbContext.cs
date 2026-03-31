@@ -13,6 +13,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<Member> Members => Set<Member>();
 
+    public DbSet<Board> Boards => Set<Board>();
+    public DbSet<Card> Cards => Set<Card>();
+    public DbSet<CardNotNow> CardNotNows => Set<CardNotNow>();
+    public DbSet<CardMaybe> CardMaybes => Set<CardMaybe>();
+    public DbSet<CardDone> CardDones => Set<CardDone>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
