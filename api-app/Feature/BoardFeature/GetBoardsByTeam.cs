@@ -20,10 +20,10 @@ public static class GetBoardsByTeam
         Guid BoardId,
         string Name,
         bool AllAccess,
-        string CreatorName,
-        List<CardDto> NotNowCards,
-        List<CardDto> MaybeCards,
-        List<CardDto> DoneCards
+        string CreatorName
+    // List<CardDto> NotNowCards,
+    // List<CardDto> MaybeCards,
+    // List<CardDto> DoneCards
     );
 
     internal sealed record CardDto(
@@ -55,43 +55,43 @@ public static class GetBoardsByTeam
                     b.Id,
                     b.Name,
                     b.AllAccess,
-                    b.Creator.Name,
-                    // Not now cards
-                    dbContext
-                        .CardNotNows.Where(n => n.BoardId == b.Id)
-                        .Select(n => n.Card)
-                        .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                        .Select(c => new CardDto(
-                            c.Id,
-                            c.Title,
-                            c.Creator.Name,
-                            c.UpdatedAt ?? c.CreatedAt
-                        ))
-                        .ToList(),
-                    // Maybe cards
-                    dbContext
-                        .CardMaybes.Where(m => m.BoardId == b.Id)
-                        .Select(m => m.Card)
-                        .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                        .Select(c => new CardDto(
-                            c.Id,
-                            c.Title,
-                            c.Creator.Name,
-                            c.UpdatedAt ?? c.CreatedAt
-                        ))
-                        .ToList(),
-                    // Done cards
-                    dbContext
-                        .CardDones.Where(d => d.BoardId == b.Id)
-                        .Select(d => d.Card)
-                        .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                        .Select(c => new CardDto(
-                            c.Id,
-                            c.Title,
-                            c.Creator.Name,
-                            c.UpdatedAt ?? c.CreatedAt
-                        ))
-                        .ToList()
+                    b.Creator.Name
+                // // Not now cards
+                // dbContext
+                //     .CardNotNows.Where(n => n.BoardId == b.Id)
+                //     .Select(n => n.Card)
+                //     .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
+                //     .Select(c => new CardDto(
+                //         c.Id,
+                //         c.Title,
+                //         c.Creator.Name,
+                //         c.UpdatedAt ?? c.CreatedAt
+                //     ))
+                //     .ToList(),
+                // // Maybe cards
+                // dbContext
+                //     .CardMaybes.Where(m => m.BoardId == b.Id)
+                //     .Select(m => m.Card)
+                //     .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
+                //     .Select(c => new CardDto(
+                //         c.Id,
+                //         c.Title,
+                //         c.Creator.Name,
+                //         c.UpdatedAt ?? c.CreatedAt
+                //     ))
+                //     .ToList(),
+                // // Done cards
+                // dbContext
+                //     .CardDones.Where(d => d.BoardId == b.Id)
+                //     .Select(d => d.Card)
+                //     .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
+                //     .Select(c => new CardDto(
+                //         c.Id,
+                //         c.Title,
+                //         c.Creator.Name,
+                //         c.UpdatedAt ?? c.CreatedAt
+                //     ))
+                //     .ToList()
                 ))
                 .ToListAsync(cancellationToken);
 

@@ -18,6 +18,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CardNotNow> CardNotNows => Set<CardNotNow>();
     public DbSet<CardMaybe> CardMaybes => Set<CardMaybe>();
     public DbSet<CardDone> CardDones => Set<CardDone>();
+    public DbSet<CardContent> CardContents => Set<CardContent>();
+    public DbSet<Comment> Comments => Set<Comment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

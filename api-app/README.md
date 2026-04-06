@@ -14,3 +14,8 @@ dotnet ef migrations add <MigrationName> --project Infrastructure --startup-proj
 ```sh
 dotnet ef database update --project Infrastructure --startup-project Feature
 ```
+
+- Run Application:
+```sh
+dotnet run --project Feature
+```
