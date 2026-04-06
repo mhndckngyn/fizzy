@@ -12,14 +12,14 @@ namespace Feature.CardFeatures;
 
 public static class CreateCard
 {
-    internal sealed record CreateCardRequest(string? Title);
+    internal sealed record CreateCardRequest(string? Title, string? Body);
 
-    internal sealed record CreateCardCommand(string? Title, Guid BoardId, Guid UserId)
+    internal sealed record CreateCardCommand(string? Title, string? Body, Guid BoardId, Guid UserId)
         : IRequest<Result<CreateCardResponse>>;
 
     internal sealed record CreateCardResponse(Guid CardId, string? Title);
 
-    internal class CreateCardHandler(AppDbContext dbContext)
+    internal class CreateCardHandler(AppDbContext dbContext, ISender sender)
         : IRequestHandler<CreateCardCommand, Result<CreateCardResponse>>
     {
         public async Task<Result<CreateCardResponse>> Handle(
@@ -27,7 +27,6 @@ public static class CreateCard
             CancellationToken cancellationToken
         )
         {
-            // Verify board exists và user là member của team chứa board đó
             Member? member = await dbContext.Members.FirstOrDefaultAsync(
                 m =>
                     m.UserId == request.UserId
@@ -45,12 +44,16 @@ public static class CreateCard
                 CreatorMemberId = member.Id,
             };
 
-            // Card mới tạo sẽ ở Maybe
             CardMaybe maybe = new() { CardId = card.Id, BoardId = request.BoardId };
 
             dbContext.Cards.Add(card);
             dbContext.CardMaybes.Add(maybe);
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            await sender.Send(
+                new CreateCardContent.CreateCardContentCommand(card.Id, request.Body),
+                cancellationToken
+            );
 
             return Result.Ok(new CreateCardResponse(card.Id, card.Title));
         }
@@ -73,7 +76,12 @@ public static class CreateCard
                         if (userId is null)
                             return Results.Unauthorized();
 
-                        CreateCardCommand command = new(request.Title, boardId, userId.Value);
+                        CreateCardCommand command = new(
+                            request.Title,
+                            request.Body,
+                            boardId,
+                            userId.Value
+                        );
 
                         Result<CreateCardResponse> result = await sender.Send(command);
 
