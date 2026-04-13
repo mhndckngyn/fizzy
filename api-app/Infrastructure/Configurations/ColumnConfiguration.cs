@@ -24,5 +24,12 @@ public class ColumnConfiguration : IEntityTypeConfiguration<Column>
             .HasForeignKey(c => c.BoardId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasMany(c => c.Cards)
+            .WithOne()
+            .HasForeignKey(card => card.ColumnId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
