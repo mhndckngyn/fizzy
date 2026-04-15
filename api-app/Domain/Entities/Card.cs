@@ -4,6 +4,7 @@ namespace Domain.Entities;
 
 public class Card : BaseEntity
 {
+    public int No { get; set; }
     public string? Title { get; set; }
     public Guid BoardId { get; set; }
     public Board Board { get; set; } = null!;
@@ -19,4 +20,7 @@ public class Card : BaseEntity
     // Nội dung
     public CardContent? Content { get; set; }
     public ICollection<Comment> Comments { get; set; } = [];
+
+    // Assignments
+    public ICollection<CardAssignment> Assignments { get; set; } = [];
 }
