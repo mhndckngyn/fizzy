@@ -17,7 +17,7 @@ public static class CreateCard
     internal sealed record CreateCardCommand(string? Title, string? Body, Guid BoardId, Guid UserId)
         : IRequest<Result<CreateCardResponse>>;
 
-    internal sealed record CreateCardResponse(Guid CardId, string? Title);
+    internal sealed record CreateCardResponse(Guid CardId, int No, string? Title);
 
     internal class CreateCardHandler(AppDbContext dbContext, ISender sender)
         : IRequestHandler<CreateCardCommand, Result<CreateCardResponse>>
@@ -27,21 +27,42 @@ public static class CreateCard
             CancellationToken cancellationToken
         )
         {
-            Member? member = await dbContext.Members.FirstOrDefaultAsync(
-                m =>
+            // Lấy member + teamId trong 1 query
+            var memberInfo = await dbContext
+                .Members.Where(m =>
                     m.UserId == request.UserId
-                    && dbContext.Boards.Any(b => b.Id == request.BoardId && b.TeamId == m.TeamId),
-                cancellationToken
-            );
+                    && dbContext.Boards.Any(b => b.Id == request.BoardId && b.TeamId == m.TeamId)
+                )
+                .Select(m => new { m.Id, m.TeamId })
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (member is null)
+            if (memberInfo is null)
                 return Result.Fail("You are not a member of this board.");
+
+            // Tăng CardsCount của team và lấy No mới
+            // Dùng ExecuteUpdate để atomic increment, tránh race condition
+            int updatedRows = await dbContext
+                .Teams.Where(t => t.Id == memberInfo.TeamId)
+                .ExecuteUpdateAsync(
+                    s => s.SetProperty(t => t.CardsCount, t => t.CardsCount + 1),
+                    cancellationToken
+                );
+
+            if (updatedRows == 0)
+                return Result.Fail("Team not found.");
+
+            // Lấy CardsCount mới sau khi increment
+            long newNo = await dbContext
+                .Teams.Where(t => t.Id == memberInfo.TeamId)
+                .Select(t => t.CardsCount)
+                .FirstAsync(cancellationToken);
 
             Card card = new()
             {
+                No = (int)newNo,
                 Title = request.Title,
                 BoardId = request.BoardId,
-                CreatorMemberId = member.Id,
+                CreatorMemberId = memberInfo.Id,
             };
 
             CardMaybe maybe = new() { CardId = card.Id, BoardId = request.BoardId };
@@ -55,7 +76,7 @@ public static class CreateCard
                 cancellationToken
             );
 
-            return Result.Ok(new CreateCardResponse(card.Id, card.Title));
+            return Result.Ok(new CreateCardResponse(card.Id, card.No, card.Title));
         }
     }
 
