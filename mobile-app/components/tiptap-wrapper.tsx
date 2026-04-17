@@ -3,7 +3,7 @@
 import "../styles/_keyframe-animations.scss";
 import "../styles/_variables.scss";
 
-import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
+import { SimpleEditor } from "@/components/tiptap/tiptap-templates/simple/simple-editor";
 
 /**
  * TiptapWrapper is a DOM component that runs Tiptap in a webview environment.
