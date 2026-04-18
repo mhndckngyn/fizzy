@@ -4,6 +4,8 @@ import {
   CardMoveToColumnRequest,
   CardsGetByBoardRequest,
   CardsGetByBoardResponse,
+  CardsMentionRequest,
+  CardsMentionResponse,
 } from "./types";
 
 export async function getCardsByBoard({
@@ -60,5 +62,14 @@ export async function moveCardToUserColumn({
   const response = await axiosInstance.post<ApiResponse<{ success: boolean }>>(
     `/api/teams/${teamId}/boards/${boardId}/columns/${columnId}/cards/${cardId}`,
   );
+  return response.data.data;
+}
+
+// Card mention
+export async function getCardsForMention({ teamId }: CardsMentionRequest) {
+  const response = await axiosInstance.get<ApiResponse<CardsMentionResponse>>(
+    `/api/teams/${teamId}/cards`,
+  );
+
   return response.data.data;
 }

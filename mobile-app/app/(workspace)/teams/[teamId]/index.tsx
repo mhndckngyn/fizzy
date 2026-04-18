@@ -17,7 +17,7 @@ export default function TeamHomepage() {
       setHeader({
         leftAction: {
           icon: Plus,
-          onPress: () => console.log("TODO: Navigate to create card"),
+          onPress: () => router.push(`/teams/${teamId}/cards/create`),
         },
         rightAction: {
           icon: SquareKanban,

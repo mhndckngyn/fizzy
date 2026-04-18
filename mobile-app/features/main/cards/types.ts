@@ -32,3 +32,11 @@ export type CardMoveRequest = {
 export type CardMoveToColumnRequest = CardMoveRequest & {
   columnId: string;
 };
+
+export type CardsMentionRequest = {
+  teamId: string;
+};
+
+export type CardsMentionResponse = CardMention[];
+
+export type CardMention = Pick<Card, "cardId" | "no" | "title">;
