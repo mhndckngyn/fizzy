@@ -15,7 +15,7 @@ axiosInstance.interceptors.request.use(async (config) => {
   return config;
 });
 
-export type ApiResponse<T> = {
+export type ApiResponse<T = any> = {
   data: T;
   success: boolean;
 };
