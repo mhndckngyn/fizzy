@@ -13,5 +13,7 @@ public class Team : BaseEntity
 
     public ICollection<Member> Members { get; set; } = [];
 
+    public ICollection<Card> Cards { get; set; } = [];
+
     public InvitationCode? InvitationCode { get; set; }
 }

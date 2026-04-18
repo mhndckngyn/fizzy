@@ -7,6 +7,8 @@ public class Card : BaseEntity
 {
     public int No { get; set; }
     public string? Title { get; set; }
+    public Guid TeamId { get; set; }
+    public Team Team { get; set; } = null!;
     public Guid BoardId { get; set; }
     public Board Board { get; set; } = null!;
     public Guid CreatorMemberId { get; set; }

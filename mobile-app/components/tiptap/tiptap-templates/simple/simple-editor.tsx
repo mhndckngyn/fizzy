@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 
 // --- Tiptap Core Extensions ---
 import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { Selection } from "@tiptap/extensions";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Mention } from "@tiptap/extension-mention";
 // import { Subscript } from "@tiptap/extension-subscript";
 // import { Superscript } from "@tiptap/extension-superscript";
 // import { TextAlign } from "@tiptap/extension-text-align";
 // import { Typography } from "@tiptap/extension-typography";
 // import { Highlight } from "@tiptap/extension-highlight";
-import { Selection } from "@tiptap/extensions";
-import { StarterKit } from "@tiptap/starter-kit";
 
 // --- UI Primitives ---
 import { Button } from "@/components/tiptap/tiptap-ui-primitive/button";
@@ -50,6 +51,11 @@ import { useIsBreakpoint } from "@/hooks/tiptap/use-is-breakpoint";
 import "@/components/tiptap/tiptap-templates/simple/simple-editor.scss";
 import { ListButton } from "@/components/tiptap/tiptap-ui/list-button";
 import { MarkButton } from "@/components/tiptap/tiptap-ui/mark-button";
+import {
+  createCardMentionSuggestion,
+  createMemberMentionSuggestion,
+  EditorMentionItem,
+} from "./mention-suggestion";
 
 const MainToolbarContent = ({
   onHighlighterClick,
@@ -143,15 +149,24 @@ const MobileToolbarContent = ({
   </>
 );
 
+type SimpleEditorProps = {
+  initialContent?: string;
+
+  onUpdate?: (content: string, mentionedMemberIds: string[]) => void;
+  onReady?: () => void;
+
+  memberList?: EditorMentionItem[];
+  cardList?: EditorMentionItem[];
+};
+
 export function SimpleEditor({
   initialContent = "",
   onUpdate,
   onReady,
-}: {
-  initialContent?: string;
-  onUpdate?: (content: string) => void;
-  onReady?: () => void;
-}) {
+
+  memberList = [],
+  cardList = [],
+}: SimpleEditorProps) {
   const isMobile = useIsBreakpoint();
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
     "main",
@@ -181,19 +196,55 @@ export function SimpleEditor({
         heading: false,
         undoRedo: false,
       }),
-      // HorizontalRule,
-      // TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Selection,
+      Mention.configure({
+        HTMLAttributes: {
+          class: "mention",
+        },
+        suggestions: [
+          createMemberMentionSuggestion(memberList),
+          createCardMentionSuggestion(cardList),
+        ],
+      }),
+
+      // HorizontalRule,
+      // TextAlign.configure({ types: ["heading", "paragraph"] }),
       // Highlight.configure({ multicolor: true }),
       // Typography,
       // Superscript,
       // Subscript,
-      Selection,
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
-      onUpdate?.(editor.getHTML());
+      const html = editor.getHTML();
+      const json = editor.getJSON();
+
+      const extractMentionIds = (node: any): string[] => {
+        let ids: string[] = [];
+        // If we hit a mention node, grab its ID
+        if (
+          node.type === "mention" &&
+          node.attrs?.id &&
+          node.attrs?.mentionSuggestionChar === "@"
+        ) {
+          ids.push(node.attrs.id);
+        }
+        // If this node has children, check them too
+        if (node.content) {
+          node.content.forEach((child: any) => {
+            ids.push(...extractMentionIds(child));
+          });
+        }
+        return ids;
+      };
+
+      const uniqueMentionIds = [...new Set(extractMentionIds(json))];
+
+      if (onUpdate) {
+        onUpdate(html, uniqueMentionIds);
+      }
     },
     onCreate: () => {
       onReady?.();

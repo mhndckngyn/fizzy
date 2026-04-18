@@ -4,15 +4,16 @@ import { useCurrentBoardParams, useCurrentTeamParams } from "../_shared/hooks";
 import { queryKeys } from "../_shared/query-keys";
 import { useColumns } from "../columns/hooks";
 import { ColumnWithCards } from "../columns/types";
-import { getCardsByBoard } from "./api";
-import { Card } from "./types";
+import { getCardsByBoard, getCardsForMention } from "./api";
+import { Card, CardsMentionResponse } from "./types";
+import { EditorMentionItem } from "@/components/tiptap/tiptap-templates/simple/mention-suggestion";
 
 export const useBoardCards = () => {
   const { teamId } = useCurrentTeamParams();
   const boardId = useCurrentBoardParams();
 
   return useQuery({
-    queryKey: queryKeys.cards(teamId, boardId),
+    queryKey: queryKeys.boardCards(teamId, boardId),
     queryFn: () => getCardsByBoard({ teamId, boardId }),
     enabled: !!teamId && !!boardId,
   });
@@ -55,4 +56,20 @@ export const useGroupedBoardCards = () => {
   }, [columnsQuery, cardsQuery]);
 
   return groupedData;
+};
+
+export const useCardMention = () => {
+  const { teamId } = useCurrentTeamParams();
+
+  return useQuery({
+    queryKey: queryKeys.mentionCard(teamId),
+    queryFn: () => getCardsForMention({ teamId }),
+    select: (data: CardsMentionResponse): EditorMentionItem[] => {
+      return data.map((card) => ({
+        id: card.cardId,
+        name: `${card.no} - ${card.title}`,
+      }));
+      // TODO order by updated date
+    },
+  });
 };

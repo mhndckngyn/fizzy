@@ -14,8 +14,13 @@ public static class CreateCard
 {
     internal sealed record CreateCardRequest(string? Title, string? Body);
 
-    internal sealed record CreateCardCommand(string? Title, string? Body, Guid BoardId, Guid UserId)
-        : IRequest<Result<CreateCardResponse>>;
+    internal sealed record CreateCardCommand(
+        string? Title,
+        string? Body,
+        Guid TeamId,
+        Guid BoardId,
+        Guid UserId
+    ) : IRequest<Result<CreateCardResponse>>;
 
     internal sealed record CreateCardResponse(Guid CardId, int No, string? Title);
 
@@ -29,10 +34,7 @@ public static class CreateCard
         {
             // Lấy member + teamId trong 1 query
             var memberInfo = await dbContext
-                .Members.Where(m =>
-                    m.UserId == request.UserId
-                    && dbContext.Boards.Any(b => b.Id == request.BoardId && b.TeamId == m.TeamId)
-                )
+                .Members.Where(m => m.UserId == request.UserId && m.TeamId == request.TeamId)
                 .Select(m => new { m.Id, m.TeamId })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -57,10 +59,11 @@ public static class CreateCard
                 .Select(t => t.CardsCount)
                 .FirstAsync(cancellationToken);
 
-            Card card = new()
+            Domain.Entities.Card card = new()
             {
                 No = (int)newNo,
                 Title = request.Title,
+                TeamId = request.TeamId,
                 BoardId = request.BoardId,
                 CreatorMemberId = memberInfo.Id,
             };
@@ -85,8 +88,9 @@ public static class CreateCard
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPost(
-                    "/api/boards/{boardId:guid}/cards",
+                    "/api/teams/${teamId:guid}/boards/{boardId:guid}/cards",
                     async (
+                        Guid teamId,
                         Guid boardId,
                         ClaimsPrincipal user,
                         CreateCardRequest request,
@@ -100,6 +104,7 @@ public static class CreateCard
                         CreateCardCommand command = new(
                             request.Title,
                             request.Body,
+                            teamId,
                             boardId,
                             userId.Value
                         );
