@@ -85,6 +85,9 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("CreatorMemberId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("No")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Title")
                         .HasColumnType("text");
 
@@ -102,7 +105,53 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatorMemberId");
 
+                    b.HasIndex("BoardId", "No");
+
                     b.ToTable("Cards", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.CardAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssigneeMemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssignerMemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BoardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssigneeMemberId");
+
+                    b.HasIndex("AssignerMemberId");
+
+                    b.HasIndex("BoardId");
+
+                    b.HasIndex("CardId", "AssigneeMemberId")
+                        .IsUnique();
+
+                    b.ToTable("CardAssignments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CardContent", b =>
@@ -565,6 +614,41 @@ namespace Infrastructure.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("Domain.Entities.CardAssignment", b =>
+                {
+                    b.HasOne("Domain.Entities.Member", "Assignee")
+                        .WithMany()
+                        .HasForeignKey("AssigneeMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Member", "Assigner")
+                        .WithMany()
+                        .HasForeignKey("AssignerMemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Board", "Board")
+                        .WithMany()
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Card", "Card")
+                        .WithMany("Assignments")
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Assignee");
+
+                    b.Navigation("Assigner");
+
+                    b.Navigation("Board");
+
+                    b.Navigation("Card");
+                });
+
             modelBuilder.Entity("Domain.Entities.CardContent", b =>
                 {
                     b.HasOne("Domain.Entities.Card", "Card")
@@ -702,6 +786,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Card", b =>
                 {
+                    b.Navigation("Assignments");
+
                     b.Navigation("Comments");
 
                     b.Navigation("Content");

@@ -24,6 +24,10 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
             .HasForeignKey(c => c.CreatorMemberId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // No unique per team (via Board → TeamId)
+        // Đảm bảo No không bị trùng trong cùng 1 team
+        builder.HasIndex(c => new { c.BoardId, c.No });
+
         builder.HasIndex(c => c.BoardId);
         builder.HasIndex(c => c.CreatorMemberId);
     }

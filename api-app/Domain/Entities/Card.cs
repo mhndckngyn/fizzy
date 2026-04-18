@@ -5,6 +5,7 @@ namespace Domain.Entities;
 
 public class Card : BaseEntity
 {
+    public int No { get; set; }
     public string? Title { get; set; }
     public Guid BoardId { get; set; }
     public Board Board { get; set; } = null!;
@@ -76,4 +77,6 @@ public class Card : BaseEntity
         Maybe = null;
         Done = null;
     }
+
+    public ICollection<CardAssignment> Assignments { get; set; } = [];
 }
