@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260411093942_AddColumnConfiguration")]
+    partial class AddColumnConfiguration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,9 +88,6 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("CreatorMemberId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("No")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Title")
                         .HasColumnType("text");
 
@@ -101,57 +101,9 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BoardId");
 
-                    b.HasIndex("ColumnId");
-
                     b.HasIndex("CreatorMemberId");
 
-                    b.HasIndex("BoardId", "No");
-
                     b.ToTable("Cards", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.CardAssignment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AssigneeMemberId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AssignerMemberId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BoardId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CardId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssigneeMemberId");
-
-                    b.HasIndex("AssignerMemberId");
-
-                    b.HasIndex("BoardId");
-
-                    b.HasIndex("CardId", "AssigneeMemberId")
-                        .IsUnique();
-
-                    b.ToTable("CardAssignments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CardContent", b =>
@@ -598,11 +550,6 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Column", null)
-                        .WithMany("Cards")
-                        .HasForeignKey("ColumnId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("Domain.Entities.Member", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorMemberId")
@@ -612,41 +559,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Board");
 
                     b.Navigation("Creator");
-                });
-
-            modelBuilder.Entity("Domain.Entities.CardAssignment", b =>
-                {
-                    b.HasOne("Domain.Entities.Member", "Assignee")
-                        .WithMany()
-                        .HasForeignKey("AssigneeMemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Member", "Assigner")
-                        .WithMany()
-                        .HasForeignKey("AssignerMemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Board", "Board")
-                        .WithMany()
-                        .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Card", "Card")
-                        .WithMany("Assignments")
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Assignee");
-
-                    b.Navigation("Assigner");
-
-                    b.Navigation("Board");
-
-                    b.Navigation("Card");
                 });
 
             modelBuilder.Entity("Domain.Entities.CardContent", b =>
@@ -786,8 +698,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Card", b =>
                 {
-                    b.Navigation("Assignments");
-
                     b.Navigation("Comments");
 
                     b.Navigation("Content");
@@ -797,11 +707,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Maybe");
 
                     b.Navigation("NotNow");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Column", b =>
-                {
-                    b.Navigation("Cards");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>

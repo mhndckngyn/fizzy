@@ -8,7 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationMember> NotificationMembers => Set<NotificationMember>();
-
+    public DbSet<Column> Columns => Set<Column>();
     public DbSet<Team> Teams => Set<Team>();
 
     public DbSet<Member> Members => Set<Member>();
