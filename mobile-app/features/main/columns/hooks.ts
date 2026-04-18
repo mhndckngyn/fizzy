@@ -24,6 +24,15 @@ export const useColumns = () => {
   });
 };
 
+export const useColumnsbyBoardId = (boardId: string) => {
+  const { teamId } = useCurrentTeamParams();
+  return useQuery({
+    queryKey: queryKeys.columns(teamId, boardId),
+    queryFn: () => getColumns({ teamId, boardId }),
+    enabled: !!teamId && !!boardId,
+  });
+};
+
 export const useCreateColumn = () => {
   const queryClient = useQueryClient();
 
