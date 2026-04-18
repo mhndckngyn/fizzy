@@ -13,6 +13,12 @@ public class CardConfiguration : IEntityTypeConfiguration<Card>
         builder.HasKey(c => c.Id);
 
         builder
+            .HasOne(c => c.Team)
+            .WithMany(t => t.Cards)
+            .HasForeignKey(c => c.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
             .HasOne(c => c.Board)
             .WithMany(b => b.Cards)
             .HasForeignKey(c => c.BoardId)
