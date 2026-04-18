@@ -12,11 +12,16 @@ namespace Feature.CardFeatures;
 
 public static class CreateCard
 {
-    internal sealed record CreateCardRequest(string? Title, string? Body);
+    internal sealed record CreateCardRequest(
+        string? Title,
+        string? Body,
+        List<Guid>? AssignedMemberIds
+    );
 
     internal sealed record CreateCardCommand(
         string? Title,
         string? Body,
+        List<Guid>? AssignedMemberIds,
         Guid TeamId,
         Guid BoardId,
         Guid UserId
@@ -72,6 +77,29 @@ public static class CreateCard
 
             dbContext.Cards.Add(card);
             dbContext.CardMaybes.Add(maybe);
+
+            // Xử lý assignments nếu có
+            if (request.AssignedMemberIds is { Count: > 0 })
+            {
+                // Validate các memberId đều thuộc team, tránh FK violation
+                var validMemberIds = await dbContext
+                    .Members.Where(m =>
+                        m.TeamId == request.TeamId && request.AssignedMemberIds.Contains(m.Id)
+                    )
+                    .Select(m => m.Id)
+                    .ToListAsync(cancellationToken);
+
+                var assignments = validMemberIds.Select(assigneeId => new CardAssignment
+                {
+                    CardId = card.Id,
+                    BoardId = request.BoardId,
+                    AssignerMemberId = memberInfo.Id,
+                    AssigneeMemberId = assigneeId,
+                });
+
+                dbContext.CardAssignments.AddRange(assignments);
+            }
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             await sender.Send(
@@ -88,7 +116,7 @@ public static class CreateCard
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPost(
-                    "/api/teams/${teamId:guid}/boards/{boardId:guid}/cards",
+                    "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards",
                     async (
                         Guid teamId,
                         Guid boardId,
@@ -104,6 +132,7 @@ public static class CreateCard
                         CreateCardCommand command = new(
                             request.Title,
                             request.Body,
+                            request.AssignedMemberIds,
                             teamId,
                             boardId,
                             userId.Value
