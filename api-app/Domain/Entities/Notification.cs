@@ -18,4 +18,24 @@ public class Notification : BaseEntity
     private readonly List<NotificationMember> _notificationMembers = [];
     public IReadOnlyCollection<NotificationMember> NotificationMembers =>
         _notificationMembers.AsReadOnly();
+
+    public Notification(
+        int cardNo,
+        string boardName,
+        string title,
+        string message,
+        string senderName,
+        NotificationType notificationType
+    )
+    {
+        CardNo = cardNo;
+        BoardName = boardName;
+        Title = title;
+        Message = message;
+        SenderName = senderName;
+        NotificationType = notificationType;
+    }
+
+    public void AddMember(Guid userId) =>
+        _notificationMembers.Add(new NotificationMember(Id, userId));
 }

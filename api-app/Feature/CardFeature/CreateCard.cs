@@ -3,6 +3,7 @@ using Carter;
 using Domain.Entities;
 using Feature.ApiResponses;
 using Feature.Extensions;
+using Feature.NotificationFeature;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
@@ -15,13 +16,15 @@ public static class CreateCard
     internal sealed record CreateCardRequest(
         string? Title,
         string? Body,
-        List<Guid>? AssignedMemberIds
+        List<Guid>? AssignedMemberIds,
+        List<Guid>? MentionedMemberIds
     );
 
     internal sealed record CreateCardCommand(
         string? Title,
         string? Body,
         List<Guid>? AssignedMemberIds,
+        List<Guid>? MentionedMemberIds,
         Guid TeamId,
         Guid BoardId,
         Guid UserId
@@ -98,6 +101,16 @@ public static class CreateCard
                 });
 
                 dbContext.CardAssignments.AddRange(assignments);
+
+                await sender.Send(
+                    new SendNotification.SendNotificationCommand(
+                        request.AssignedMemberIds,
+                        card.Id,
+                        memberInfo.Id,
+                        NotificationType.Assignment
+                    ),
+                    cancellationToken
+                );
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -106,6 +119,18 @@ public static class CreateCard
                 new CreateCardContent.CreateCardContentCommand(card.Id, request.Body),
                 cancellationToken
             );
+
+            // Gửi notification cho các mentioned member
+            if (request.MentionedMemberIds is { Count: > 0 })
+                await sender.Send(
+                    new SendNotification.SendNotificationCommand(
+                        request.MentionedMemberIds,
+                        card.Id,
+                        memberInfo.Id,
+                        NotificationType.Mention
+                    ),
+                    cancellationToken
+                );
 
             return Result.Ok(new CreateCardResponse(card.Id, card.No, card.Title));
         }
@@ -133,6 +158,7 @@ public static class CreateCard
                             request.Title,
                             request.Body,
                             request.AssignedMemberIds,
+                            request.MentionedMemberIds,
                             teamId,
                             boardId,
                             userId.Value

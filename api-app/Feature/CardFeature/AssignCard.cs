@@ -3,6 +3,7 @@ using Carter;
 using Domain.Entities;
 using Feature.ApiResponses;
 using Feature.Extensions;
+using Feature.NotificationFeature;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
@@ -32,7 +33,7 @@ public static class AssignCard
         string AssigneeName
     );
 
-    internal class AssignCardHandler(AppDbContext dbContext)
+    internal class AssignCardHandler(AppDbContext dbContext, ISender sender)
         : IRequestHandler<AssignCardCommand, Result<AssignCardResponse>>
     {
         public async Task<Result<AssignCardResponse>> Handle(
@@ -90,6 +91,16 @@ public static class AssignCard
 
             dbContext.CardAssignments.Add(assignment);
             await dbContext.SaveChangesAsync(cancellationToken);
+
+            await sender.Send(
+                new SendNotification.SendNotificationCommand(
+                    [request.AssigneeMemberId],
+                    request.CardId,
+                    requester.Id,
+                    NotificationType.Assignment
+                ),
+                cancellationToken
+            );
 
             return Result.Ok(
                 new AssignCardResponse(assignment.Id, assignment.CardId, assignee.Id, assignee.Name)

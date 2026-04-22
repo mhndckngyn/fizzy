@@ -8,13 +8,13 @@ public class NotificationMember : BaseEntity
     public Guid RecepientMemberId { get; }
     public bool IsRead { get; private set; }
 
-    public void MarkAsRead()
+    public NotificationMember(Guid notificationId, Guid recepientMemberId)
     {
-        IsRead = true;
+        NotificationId = notificationId;
+        RecepientMemberId = recepientMemberId;
     }
 
-    public void MarkAsUnread()
-    {
-        IsRead = false;
-    }
+    public void MarkAsRead() => IsRead = true;
+
+    public void MarkAsUnread() => IsRead = false;
 }

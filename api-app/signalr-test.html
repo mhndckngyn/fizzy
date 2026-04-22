@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SignalR Notification Test</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    h2 { color: #569cd6; }
+    label { color: #9cdcfe; }
+    input, textarea {
+      background: #2d2d2d; border: 1px solid #444; color: #d4d4d4;
+      padding: 6px 10px; border-radius: 4px; width: 100%; box-sizing: border-box;
+    }
+    button {
+      margin-top: 8px; padding: 8px 18px; border: none; border-radius: 4px;
+      cursor: pointer; font-size: 14px;
+    }
+    #btnConnect    { background: #0e639c; color: #fff; }
+    #btnDisconnect { background: #6a4040; color: #fff; }
+    #btnClear      { background: #3a3a3a; color: #ccc; }
+    .section { margin-bottom: 20px; }
+    #status {
+      display: inline-block; padding: 4px 12px; border-radius: 12px;
+      font-size: 13px; font-weight: bold;
+    }
+    .disconnected { background: #6a4040; color: #ff8080; }
+    .connecting   { background: #5a4f20; color: #ffd080; }
+    .connected    { background: #1e4620; color: #80ff80; }
+    #log {
+      background: #252526; border: 1px solid #333; padding: 12px;
+      height: 320px; overflow-y: auto; border-radius: 4px;
+      font-size: 13px; line-height: 1.6;
+    }
+    .log-info    { color: #9cdcfe; }
+    .log-success { color: #4ec9b0; }
+    .log-error   { color: #f44747; }
+    .log-notif   { color: #dcdcaa; }
+    .log-time    { color: #666; font-size: 11px; }
+  </style>
+</head>
+<body>
+
+<h2>SignalR Notification Tester</h2>
+
+<div class="section">
+  <label>API Base URL</label><br />
+  <input id="apiUrl" value="https://localhost:7001" style="width:340px" />
+</div>
+
+<div class="section">
+  <label>JWT Token (paste từ Postman / Get JWT)</label><br />
+  <textarea id="token" rows="3" placeholder="eyJhbGci..."></textarea>
+</div>
+
+<div class="section">
+  <button id="btnConnect">Connect</button>
+  <button id="btnDisconnect">Disconnect</button>
+  <button id="btnClear">Clear log</button>
+  &nbsp;&nbsp;
+  <span id="status" class="disconnected">Disconnected</span>
+</div>
+
+<div class="section">
+  <label>Log</label>
+  <div id="log"></div>
+</div>
+
+<script>
+  let connection = null;
+
+  const logEl     = document.getElementById('log');
+  const statusEl  = document.getElementById('status');
+
+  function log(msg, cls = 'log-info') {
+    const time = new Date().toLocaleTimeString();
+    logEl.innerHTML +=
+      `<span class="log-time">[${time}]</span> <span class="${cls}">${msg}</span>\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  document.getElementById('btnConnect').onclick = async () => {
+    const baseUrl = document.getElementById('apiUrl').value.trim();
+    const token   = document.getElementById('token').value.trim();
+
+    if (!token) { log('⚠ Paste JWT token trước.', 'log-error'); return; }
+    if (connection) { log('Đang connected rồi.', 'log-info'); return; }
+
+    setStatus('connecting');
+    log('Connecting to ' + baseUrl + '/hubs/notifications …');
+
+    connection = new signalR.HubConnectionBuilder()
+      .withUrl(baseUrl + '/hubs/notifications', { accessTokenFactory: () => token })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Warning)
+      .build();
+
+    connection.on('ReceiveNotification', (dto) => {
+      log('🔔 ReceiveNotification:', 'log-notif');
+      log(JSON.stringify(dto, null, 2), 'log-notif');
+    });
+
+    connection.onclose(() => {
+      setStatus('disconnected');
+      log('Connection closed.', 'log-error');
+      connection = null;
+    });
+
+    connection.onreconnecting(() => {
+      setStatus('connecting');
+      log('Reconnecting…', 'log-info');
+    });
+
+    connection.onreconnected(() => {
+      setStatus('connected');
+      log('Reconnected ✓', 'log-success');
+    });
+
+    try {
+      await connection.start();
+      setStatus('connected');
+      log('Connected ✓  (ConnectionId: ' + connection.connectionId + ')', 'log-success');
+    } catch (err) {
+      setStatus('disconnected');
+      log('Connection failed: ' + err.toString(), 'log-error');
+      connection = null;
+    }
+  };
+
+  document.getElementById('btnDisconnect').onclick = async () => {
+    if (!connection) { log('Chưa connect.', 'log-info'); return; }
+    await connection.stop();
+    connection = null;
+    setStatus('disconnected');
+    log('Disconnected.', 'log-info');
+  };
+
+  document.getElementById('btnClear').onclick = () => { logEl.innerHTML = ''; };
+
+  function setStatus(s) {
+    statusEl.className = s;
+    statusEl.textContent = { connecting: 'Connecting…', connected: 'Connected', disconnected: 'Disconnected' }[s];
+  }
+</script>
+</body>
+</html>

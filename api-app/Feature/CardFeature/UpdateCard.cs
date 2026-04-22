@@ -3,6 +3,7 @@ using Carter;
 using Domain.Entities;
 using Feature.ApiResponses;
 using Feature.Extensions;
+using Feature.NotificationFeature;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
@@ -12,14 +13,19 @@ namespace Feature.CardFeatures;
 
 public static class UpdateCard
 {
-    internal sealed record UpdateCardRequest(string? Title, string? Body);
+    internal sealed record UpdateCardRequest(
+        string? Title,
+        string? Body,
+        List<Guid>? MentionedMemberIds
+    );
 
     internal sealed record UpdateCardCommand(
         Guid CardId,
         Guid BoardId,
         Guid UserId,
         string? Title,
-        string? Body
+        string? Body,
+        List<Guid>? MentionedMemberIds
     ) : IRequest<Result<UpdateCardResponse>>;
 
     internal sealed record UpdateCardResponse(Guid CardId, int No, string? Title);
@@ -59,6 +65,17 @@ public static class UpdateCard
                 cancellationToken
             );
 
+            if (request.MentionedMemberIds is { Count: > 0 })
+                await sender.Send(
+                    new SendNotification.SendNotificationCommand(
+                        request.MentionedMemberIds,
+                        card.Id,
+                        member.Id,
+                        NotificationType.Mention
+                    ),
+                    cancellationToken
+                );
+
             return Result.Ok(new UpdateCardResponse(card.Id, card.No, card.Title));
         }
     }
@@ -86,7 +103,8 @@ public static class UpdateCard
                             boardId,
                             userId.Value,
                             request.Title,
-                            request.Body
+                            request.Body,
+                            request.MentionedMemberIds
                         );
 
                         Result<UpdateCardResponse> result = await sender.Send(command);
