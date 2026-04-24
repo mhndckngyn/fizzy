@@ -1,25 +1,25 @@
+import { useHeaderStore } from "@/components/workspace-header/use-header-store";
+import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
+import { useBoards } from "@/features/main/boards/hooks";
+import { AssignCardSection } from "@/features/main/cards/components/card-details-page/assign-card-section";
 import {
   BoardSelector,
   CardBodyEditor,
   CardTitleInput,
-} from "@/features/main/cards/components/card-form-components";
-import { AssignCardSection } from "@/features/main/cards/components/assign-card-section";
+} from "@/features/main/cards/components/card-details-page/card-form-components";
 import {
   ColumnMoveSection,
   ColumnMoveTarget,
-} from "@/features/main/cards/components/column-move-section";
-import { useHeaderStore } from "@/components/workspace-header/use-header-store";
-import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
-import { useBoards } from "@/features/main/boards/hooks";
+} from "@/features/main/cards/components/card-details-page/column-move-section";
 import {
   useAssignCard,
   useCard,
   useCardMention,
+  useMoveCardToBoard,
+  useMoveCardToColumn,
   useMoveCardToDone,
   useMoveCardToMaybe,
   useMoveCardToNotNow,
-  useMoveCardToColumn,
-  useMoveCardToBoard,
   useUnassignCard,
   useUpdateCard,
 } from "@/features/main/cards/hooks";
@@ -203,7 +203,7 @@ export default function CardDetailPage() {
         <YStack p="$2" gap="$3">
           <Card paddingInline="$3" paddingBottom="$3" bg="$gray3">
             <ColumnMoveSection
-              columns={(columns?.columns ?? []).map((c) => ({
+              columns={(columns ?? []).map((c) => ({
                 columnId: c.columnId,
                 name: c.name,
                 position: c.position,

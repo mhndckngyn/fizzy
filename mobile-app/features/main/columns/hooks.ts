@@ -13,22 +13,12 @@ import {
   ColumnUpdateRequest,
 } from "./types";
 
-export const useColumns = () => {
-  const { teamId } = useCurrentTeamParams();
-  const boardId = useCurrentBoardParams();
-
-  return useQuery({
-    queryKey: queryKeys.columns(teamId, boardId),
-    queryFn: () => getColumns({ teamId, boardId }),
-    enabled: !!teamId && !!boardId,
-  });
-};
-
 export const useColumnsbyBoardId = (boardId: string) => {
   const { teamId } = useCurrentTeamParams();
   return useQuery({
     queryKey: queryKeys.columns(teamId, boardId),
     queryFn: () => getColumns({ teamId, boardId }),
+    select: (data) => data.columns.sort((a, b) => a.position - b.position), // TODO maybe let backend do this
     enabled: !!teamId && !!boardId,
   });
 };

@@ -62,7 +62,9 @@ export type CardsMentionRequest = {
   teamId: string;
 };
 
-export type CardsMentionResponse = CardMention[];
+export type CardsMentionResponse = {
+  cards: CardMention[];
+};
 
 export type CardMention = Pick<Card, "cardId" | "no" | "title">;
 

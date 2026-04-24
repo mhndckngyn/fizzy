@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Button, Input, Sheet, Text, View, XStack, YStack } from "tamagui";
 
 export const COLOR_OPTIONS = [
-  "#E05D5D",
-  "#D4773B",
-  "#28A745",
-  "#17A2B8",
-  "#4A90E2",
-  "#9B59B6",
-  "#E83E8C",
-  "#A2B0A6",
-  "#7F8C8D",
+  "#1e90ff",
+  "#8f9297",
+  "#bd833c",
+  "#e38901",
+  "#4ab167",
+  "#00aac2",
+  "#eb003b",
+  "#be52ff",
+  "#df51b2",
 ];
 
 interface ManageColumnSheetProps {

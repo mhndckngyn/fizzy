@@ -4,6 +4,7 @@ import {
   useCurrentTeamParams,
 } from "@/features/main/_shared/hooks";
 import AddColumnButton from "@/features/main/boards/components/add-column-button";
+import { useBoards } from "@/features/main/boards/hooks";
 import { useGroupedBoardCards } from "@/features/main/cards/hooks";
 import { BoardColumn } from "@/features/main/columns/components/board-column";
 import { BoardSpecialColumn } from "@/features/main/columns/components/board-special-column";
@@ -16,7 +17,7 @@ import {
 import { ColumnWithCards } from "@/features/main/columns/types";
 import { Plus, Settings } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Dimensions, ScrollView } from "react-native";
 import { Text, View, XStack } from "tamagui";
 
@@ -25,12 +26,25 @@ const COLUMN_WIDTH = windowWidth * 0.85;
 const COLUMN_GAP = 16;
 const SIDE_PADDING = (windowWidth - COLUMN_WIDTH) / 2;
 
+const INITIAL_INDEX = 1; // Start on the Maybe column
+const initialOffset = INITIAL_INDEX * (COLUMN_WIDTH + COLUMN_GAP);
+
 export default function KanbanBoard() {
   const router = useRouter();
   const { teamId } = useCurrentTeamParams();
   const boardId = useCurrentBoardParams();
 
-  const boardCards = useGroupedBoardCards();
+  const { data: boardsQuery } = useBoards();
+  const boardName = useMemo(() => {
+    if (!boardsQuery) {
+      return "Loading board name";
+    }
+
+    const currentBoard = boardsQuery.boards.find((b) => b.boardId === boardId);
+    return currentBoard?.name ?? "Board name unknown";
+  }, [boardsQuery, boardId]);
+
+  const boardCards = useGroupedBoardCards(boardId);
 
   // sheet to create or edit a column
   const [sheetMode, setSheetMode] = useState<"add" | "edit">("add");
@@ -117,9 +131,16 @@ export default function KanbanBoard() {
 
   return (
     <>
-      <View flex={1} bg="$background" pt="$4">
+      <View flex={1} bg="$background" pt="$2">
+        <Text ta={"center"} fontWeight={"600"} fontSize={"$4"}>
+          {boardName}
+        </Text>
+
+        <View mb="$2.5"></View>
+
         <ScrollView
           horizontal
+          contentOffset={{ x: initialOffset, y: 0 }}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: SIDE_PADDING }}
           snapToInterval={COLUMN_WIDTH + COLUMN_GAP}
@@ -131,12 +152,14 @@ export default function KanbanBoard() {
               name="Not Now"
               cards={boardCards.notNowCards}
               width={COLUMN_WIDTH}
+              boardName={boardName}
             />
 
             <BoardSpecialColumn
               name="Maybe"
               cards={boardCards.maybeCards}
               width={COLUMN_WIDTH}
+              boardName={boardName}
             />
 
             {boardCards.columnCards.map((col, index) => (
@@ -148,6 +171,7 @@ export default function KanbanBoard() {
                 isFirstColumn={index === 0}
                 isLastColumn={index === boardCards.columnCards.length - 1}
                 onDelete={confirmDeleteColumn}
+                boardName={boardName}
               />
             ))}
 
@@ -155,6 +179,7 @@ export default function KanbanBoard() {
               name="Done"
               cards={boardCards.doneCards}
               width={COLUMN_WIDTH}
+              boardName={boardName}
             />
 
             <AddColumnButton onPress={openAddSheet} />

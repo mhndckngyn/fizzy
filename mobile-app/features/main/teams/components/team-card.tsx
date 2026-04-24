@@ -1,4 +1,4 @@
-import { getTeamAvatar } from "@/features/main/_shared/helpers";
+import { getInitials } from "@/features/main/_shared/helpers";
 import { User } from "@tamagui/lucide-icons-2";
 import { Pressable } from "react-native";
 import { Avatar, Text, XStack, YStack } from "tamagui";
@@ -11,7 +11,7 @@ function TeamCard({
   team: Team;
   onPress: (team: Team) => void;
 }) {
-  const { initials, color } = getTeamAvatar(team.name);
+  const { initials, color } = getInitials(team.name);
 
   return (
     <Pressable onPress={() => onPress(team)}>
