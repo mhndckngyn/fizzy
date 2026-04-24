@@ -54,34 +54,37 @@ export function ColumnActionsPopover({
               <Text col="$color">Edit column</Text>
             </XStack>
           </Popover.Close>
-          <Popover.Close asChild>
-            <XStack
-              ai="center"
-              gap="$3"
-              px="$3"
-              py="$2"
-              pressStyle={{ bg: "$color3" }}
-              onPress={onMoveLeft}
-              disabled={!onMoveLeft}
-            >
-              <ArrowLeft size={16} col="$color" />
-              <Text col="$color">Move left</Text>
-            </XStack>
-          </Popover.Close>
-          <Popover.Close asChild>
-            <XStack
-              ai="center"
-              gap="$3"
-              px="$3"
-              py="$2"
-              pressStyle={{ bg: "$color3" }}
-              onPress={onMoveRight}
-              disabled={!onMoveRight}
-            >
-              <ArrowRight size={16} col="$color" />
-              <Text col="$color">Move right</Text>
-            </XStack>
-          </Popover.Close>
+          {!!onMoveLeft && (
+            <Popover.Close asChild>
+              <XStack
+                ai="center"
+                gap="$3"
+                px="$3"
+                py="$2"
+                pressStyle={{ bg: "$color3" }}
+                onPress={onMoveLeft}
+              >
+                <ArrowLeft size={16} col="$color" />
+                <Text col="$color">Move left</Text>
+              </XStack>
+            </Popover.Close>
+          )}
+          {!!onMoveRight && (
+            <Popover.Close asChild>
+              <XStack
+                ai="center"
+                gap="$3"
+                px="$3"
+                py="$2"
+                pressStyle={{ bg: "$color3" }}
+                onPress={onMoveRight}
+                disabled={!onMoveRight}
+              >
+                <ArrowRight size={16} col="$color" />
+                <Text col="$color">Move right</Text>
+              </XStack>
+            </Popover.Close>
+          )}
           <Popover.Close asChild>
             <XStack
               ai="center"

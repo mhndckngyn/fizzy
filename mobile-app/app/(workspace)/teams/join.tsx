@@ -1,4 +1,4 @@
-import { getTeamAvatar } from "@/features/main/_shared/helpers";
+import { getInitials } from "@/features/main/_shared/helpers";
 import {
   useGetInvitationInfoMutation,
   useJoinTeam,
@@ -198,7 +198,7 @@ export default function JoinTeamPage() {
 }
 
 function TeamAvatarInfo({ teamInfo }: { teamInfo: InvitationInfoResponse }) {
-  const { initials, color } = getTeamAvatar(teamInfo.teamName);
+  const { initials, color } = getInitials(teamInfo.teamName);
 
   return (
     <YStack ai="center" mt="$4" mb="$2" gap="$3">
