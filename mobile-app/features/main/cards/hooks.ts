@@ -1,34 +1,32 @@
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { useCurrentBoardParams, useCurrentTeamParams } from "../_shared/hooks";
+import { useCurrentTeamParams } from "../_shared/hooks";
 import { queryKeys } from "../_shared/query-keys";
-import { useColumns } from "../columns/hooks";
+import { useColumnsbyBoardId } from "../columns/hooks";
 import { ColumnWithCards } from "../columns/types";
 import {
+  assignCard,
+  createCard,
   getCard,
   getCardsByBoard,
   getCardsForMention,
-  createCard,
-  assignCard,
-  unassignCard,
-  updateCard,
-  moveCardToMaybe,
+  moveCardToBoard,
   moveCardToDone,
+  moveCardToMaybe,
   moveCardToNotNow,
   moveCardToUserColumn,
-  moveCardToBoard,
+  unassignCard,
+  updateCard,
 } from "./api";
 import {
-  Card,
-  CardsMentionResponse,
-  CreateCardRequest,
   AssignCardRequest,
-  UpdateCardRequest,
+  Card,
   CardMoveRequest,
   CardMoveToColumnRequest,
+  CreateCardRequest,
   MoveCardToBoardRequest,
+  UpdateCardRequest,
 } from "./types";
-import { EditorMentionItem } from "@/components/tiptap/tiptap-templates/simple/mention-suggestion";
 
 export const useCard = (teamId: string, cardId: string) =>
   useQuery({
@@ -37,9 +35,8 @@ export const useCard = (teamId: string, cardId: string) =>
     enabled: !!teamId && !!cardId,
   });
 
-export const useBoardCards = () => {
+export const useBoardCards = (boardId: string) => {
   const { teamId } = useCurrentTeamParams();
-  const boardId = useCurrentBoardParams();
 
   return useQuery({
     queryKey: queryKeys.boardCards(teamId, boardId),
@@ -48,19 +45,19 @@ export const useBoardCards = () => {
   });
 };
 
-export const useGroupedBoardCards = () => {
-  const { data: columnsQuery } = useColumns();
-  const { data: cardsQuery } = useBoardCards();
+export const useGroupedBoardCards = (boardId: string) => {
+  const { data: columns } = useColumnsbyBoardId(boardId);
+  const { data: cardsQuery } = useBoardCards(boardId);
 
   const groupedData = useMemo(() => {
-    if (!columnsQuery || !cardsQuery) return;
+    if (!columns || !cardsQuery) return;
 
     const maybeCards: Card[] = [];
     const doneCards: Card[] = [];
     const notNowCards: Card[] = [];
     const columnGroups: Record<string, ColumnWithCards> = {};
 
-    columnsQuery.columns.forEach(
+    columns.forEach(
       (column) => (columnGroups[column.columnId] = { ...column, cards: [] }),
     );
 
@@ -80,7 +77,7 @@ export const useGroupedBoardCards = () => {
       doneCards,
       notNowCards,
     };
-  }, [columnsQuery, cardsQuery]);
+  }, [columns, cardsQuery]);
 
   return groupedData;
 };
@@ -91,23 +88,23 @@ export const useCardMention = () => {
   return useQuery({
     queryKey: queryKeys.mentionCard(teamId),
     queryFn: () => getCardsForMention({ teamId }),
-    select: (data: CardsMentionResponse): EditorMentionItem[] =>
-      data.map((card) => ({
+    select: (data) =>
+      data.cards.map((card) => ({
         id: card.cardId,
         name: `${card.no} - ${card.title}`,
       })),
   });
 };
 
-export const useCreateCard = (boardId: string) => {
+export const useCreateCard = () => {
   const queryClient = useQueryClient();
   const { teamId } = useCurrentTeamParams();
 
   return useMutation({
     mutationFn: (data: CreateCardRequest) => createCard(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.boardCards(teamId, boardId),
+        queryKey: queryKeys.boardCards(teamId, variables.boardId),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.members(teamId),
@@ -144,9 +141,6 @@ export const useAssignCard = (boardId: string) => {
         queryKey: queryKeys.boardCards(teamId, boardId),
       });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.members(teamId),
-      });
-      queryClient.invalidateQueries({
         queryKey: queryKeys.card(teamId, variables.cardId),
       });
     },
@@ -162,9 +156,6 @@ export const useUnassignCard = (boardId: string) => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.boardCards(teamId, boardId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.members(teamId),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.card(teamId, variables.cardId),
