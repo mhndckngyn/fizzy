@@ -10,15 +10,10 @@ namespace Feature.BoardFeatures;
 
 public static class CreateColumn
 {
-    internal sealed record CreateColumnRequest(string Name, int Position, string Color);
+    internal sealed record CreateColumnRequest(string Name, string Color);
 
-    internal sealed record CreateColumnCommand(
-        Guid TeamId,
-        Guid BoardId,
-        string Name,
-        int Position,
-        string Color
-    ) : IRequest<Result<CreateColumnResponse>>;
+    internal sealed record CreateColumnCommand(Guid TeamId, Guid BoardId, string Name, string Color)
+        : IRequest<Result<CreateColumnResponse>>;
 
     internal sealed record CreateColumnResponse(
         Guid TeamId,
@@ -46,10 +41,14 @@ public static class CreateColumn
                     new Error($"Board id {request.BoardId} not found").WithMetadata("HttpCode", 404)
                 );
 
+            var nextPosition = await dbContext
+                .Columns.Where(c => c.BoardId == request.BoardId)
+                .CountAsync(cancellationToken);
+
             Column column = new()
             {
                 Name = request.Name,
-                Position = request.Position,
+                Position = nextPosition,
                 Color = request.Color,
                 BoardId = request.BoardId,
             };
@@ -86,7 +85,6 @@ public static class CreateColumn
                         teamId,
                         boardId,
                         request.Name,
-                        request.Position,
                         request.Color
                     );
 
