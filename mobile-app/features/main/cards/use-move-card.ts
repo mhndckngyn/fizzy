@@ -19,35 +19,20 @@ export type MoveCardToBoardRequest = {
   targetBoardId: string;
 };
 
-export async function moveCardToMaybe({
-  teamId,
-  boardId,
-  cardId,
-}: CardMoveRequest) {
-  const response = await axiosInstance.put<ApiResponse<{ success: boolean }>>(
-    `/api/teams/${teamId}/boards/${boardId}/cards/${cardId}/maybe`,
-  );
-  return response.data.data;
-}
+export type SpecialColumnType = "maybe" | "not-now" | "done";
 
-export async function moveCardToNotNow({
-  teamId,
-  boardId,
-  cardId,
-}: CardMoveRequest) {
-  const response = await axiosInstance.put<ApiResponse<{ success: boolean }>>(
-    `/api/teams/${teamId}/boards/${boardId}/cards/${cardId}/not-now`,
-  );
-  return response.data.data;
-}
+export type CardMoveToSpecialColumnRequest = CardMoveRequest & {
+  target: SpecialColumnType;
+};
 
-export async function moveCardToDone({
+export async function moveCardToSpecialColumn({
   teamId,
   boardId,
   cardId,
-}: CardMoveRequest) {
+  target,
+}: CardMoveToSpecialColumnRequest) {
   const response = await axiosInstance.put<ApiResponse<{ success: boolean }>>(
-    `/api/teams/${teamId}/boards/${boardId}/cards/${cardId}/done`,
+    `/api/teams/${teamId}/boards/${boardId}/cards/${cardId}/${target}`,
   );
   return response.data.data;
 }
@@ -90,26 +75,11 @@ function useInvalidateCardQueries(boardId: string) {
   };
 }
 
-export const useMoveCardToMaybe = (boardId: string) => {
+export const useMoveCardToSpecialColumn = (boardId: string) => {
   const invalidate = useInvalidateCardQueries(boardId);
   return useMutation({
-    mutationFn: (data: CardMoveRequest) => moveCardToMaybe(data),
-    onSuccess: (_, variables) => invalidate(variables.cardId),
-  });
-};
-
-export const useMoveCardToDone = (boardId: string) => {
-  const invalidate = useInvalidateCardQueries(boardId);
-  return useMutation({
-    mutationFn: (data: CardMoveRequest) => moveCardToDone(data),
-    onSuccess: (_, variables) => invalidate(variables.cardId),
-  });
-};
-
-export const useMoveCardToNotNow = (boardId: string) => {
-  const invalidate = useInvalidateCardQueries(boardId);
-  return useMutation({
-    mutationFn: (data: CardMoveRequest) => moveCardToNotNow(data),
+    mutationFn: (data: CardMoveToSpecialColumnRequest) =>
+      moveCardToSpecialColumn(data),
     onSuccess: (_, variables) => invalidate(variables.cardId),
   });
 };

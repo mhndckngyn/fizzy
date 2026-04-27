@@ -12,21 +12,21 @@ import {
   ColumnMoveSection,
   ColumnMoveTarget,
 } from "@/features/main/cards/components/column-move-section";
-import { useCard } from "@/features/main/cards/use-card";
-import { useCardMention } from "@/features/main/cards/use-card-mention";
-import { useUpdateCard } from "@/features/main/cards/use-update-card";
 import {
   useAssignCard,
   useUnassignCard,
 } from "@/features/main/cards/use-assign-card";
+import { useCard } from "@/features/main/cards/use-card";
+import { useCardMention } from "@/features/main/cards/use-card-mention";
 import {
   useMoveCardToBoard,
   useMoveCardToColumn,
   useMoveCardToSpecialColumn,
 } from "@/features/main/cards/use-move-card";
-import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
-import { useMembers } from "@/features/main/members/use-members";
+import { useUpdateCard } from "@/features/main/cards/use-update-card";
+import { useColumnsbyBoardId } from "@/features/main/columns/hooks";
 import { useMemberMention } from "@/features/main/members/use-member-mention";
+import { useMembers } from "@/features/main/members/use-members";
 import { ArrowLeft, Save, X } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
