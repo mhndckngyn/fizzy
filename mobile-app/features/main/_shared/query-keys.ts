@@ -12,9 +12,6 @@ export const queryKeys = {
   card: (teamId: string, cardId: string) =>
     ["teams", teamId, "cards", cardId] as const,
 
-  assignments: (teamId: string, cardId: string) =>
-    ["teams", teamId, cardId, "assignments"] as const,
-
   mentionCard: (teamId: string) =>
     ["teams", teamId, "cards", "mentions"] as const,
 

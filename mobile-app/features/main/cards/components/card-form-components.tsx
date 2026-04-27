@@ -1,9 +1,10 @@
 import TiptapWrapper from "@/components/tiptap-wrapper";
-import { getTeamAvatar } from "@/features/main/_shared/helpers";
+import { EditorMentionItem } from "@/components/tiptap/tiptap-templates/simple/mention-suggestion";
+import { getInitials } from "@/features/main/_shared/helpers";
 import { Board } from "@/features/main/boards/types";
 import { Member } from "@/features/main/members/types";
-import { EditorMentionItem } from "@/components/tiptap/tiptap-templates/simple/mention-suggestion";
-import React from "react";
+import { Check, Layout, UserPlus } from "@tamagui/lucide-icons-2";
+import React, { useState } from "react";
 import {
   Avatar,
   Button,
@@ -28,6 +29,8 @@ type BoardSelectorProps = {
   disabled?: boolean;
 };
 
+const SPECIAL_COLOR = "#3d4e65";
+
 export function BoardSelector({
   boards,
   selectedBoardId,
@@ -35,35 +38,50 @@ export function BoardSelector({
   disabled,
 }: BoardSelectorProps) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <XStack gap="$2" px="$1">
-        {boards.map((board) => {
-          const isSelected = selectedBoardId === board.boardId;
-          return (
-            <Button
-              key={board.boardId}
-              size="$2"
-              br="$10"
-              onPress={() => !disabled && onSelect(board.boardId)}
-              backgroundColor={isSelected ? "$orange10" : "$orange4"}
-              borderColor={isSelected ? "$orange11" : "$orange6"}
-              borderWidth={1}
-              pressStyle={{ opacity: 0.8, scale: 0.97 }}
-              disabled={disabled}
-              opacity={disabled ? 0.6 : 1}
-            >
-              <Text
-                fontSize={12}
-                fontWeight="600"
-                color={isSelected ? "white" : "$orange11"}
-              >
-                {board.name}
-              </Text>
-            </Button>
-          );
-        })}
+    <YStack gap="$2.5">
+      <XStack ai="center" gap="$2" opacity={0.5}>
+        <Layout size={14} color="$color" />
+        <Text
+          fontSize={11}
+          fontWeight="700"
+          textTransform="uppercase"
+          letterSpacing={1}
+        >
+          Target Board
+        </Text>
       </XStack>
-    </ScrollView>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <XStack gap="$2">
+          {boards.map((board) => {
+            const isSelected = selectedBoardId === board.boardId;
+
+            return (
+              <Button
+                key={board.boardId}
+                size="$2.5"
+                br="$10"
+                onPress={() => !disabled && onSelect(board.boardId)}
+                backgroundColor={isSelected ? "$blue10" : "$blue2"}
+                borderColor={isSelected ? "$blue10" : "$blue4"}
+                borderWidth={1}
+                pressStyle={{ opacity: 0.8, scale: 0.97 }}
+                disabled={disabled || isSelected}
+                opacity={disabled ? 0.6 : 1}
+              >
+                <Text
+                  fontSize={12}
+                  fontWeight="700"
+                  color={isSelected ? "white" : "$blue11"}
+                >
+                  {board.name}
+                </Text>
+              </Button>
+            );
+          })}
+        </XStack>
+      </ScrollView>
+    </YStack>
   );
 }
 
@@ -84,14 +102,12 @@ export function CardTitleInput({ value, onChange }: CardTitleInputProps) {
       paddingInline={"$1"}
       p={"0"}
       w={"100%"}
-      rows={1}
-      size="$6"
+      size="$4"
       fontWeight="bold"
       fontSize="$8"
       borderWidth={0}
       backgroundColor="transparent"
       placeholder="Card Title"
-      scrollEnabled={false}
     />
   );
 }
@@ -103,8 +119,6 @@ export function CardTitleInput({ value, onChange }: CardTitleInputProps) {
 type CardBodyEditorProps = {
   initialContent: string;
   onContentChange: (html: string, mentionedMemberIds: string[]) => void;
-  onReady: () => void;
-  isLoading: boolean;
   memberList?: EditorMentionItem[];
   cardList?: EditorMentionItem[];
 };
@@ -112,14 +126,14 @@ type CardBodyEditorProps = {
 export function CardBodyEditor({
   initialContent,
   onContentChange,
-  onReady,
-  isLoading,
   memberList = [],
   cardList,
 }: CardBodyEditorProps) {
+  const [isLoading, setLoading] = useState(true);
+
   return (
     <View
-      mih={300}
+      mih={400}
       flexGrow={1}
       br="$4"
       p="$1"
@@ -148,7 +162,7 @@ export function CardBodyEditor({
       <TiptapWrapper
         initialContent={initialContent}
         onContentChange={onContentChange}
-        onReady={onReady}
+        onReady={() => setLoading(false)}
         memberList={memberList}
         cardList={cardList}
         dom={{ scrollEnabled: false }}
@@ -171,70 +185,89 @@ export function MemberAssignSelector({
   members,
   assignedMemberIds,
   onToggle,
-}: MemberAssignSelectorProps) {
-  const selectedNamesString = members
-    .filter((m) => assignedMemberIds.includes(m.memberId))
-    .map((m) => m.memberName)
-    .join(", ");
-
+}: MemberAssignSelectorProps & { isPending?: boolean }) {
   return (
-    <YStack gap="$2" py="$3">
-      <XStack px="$1" py="$1">
-        <Paragraph numberOfLines={2} f={1}>
-          <Text fontWeight="bold">Assign to: </Text>
-          {selectedNamesString ? (
-            <Text o={0.6} fontWeight="normal">
-              {selectedNamesString}
-            </Text>
-          ) : (
-            <Text o={0.3} fontWeight="normal" fontStyle="italic">
-              No one
-            </Text>
-          )}
-        </Paragraph>
+    <YStack gap="$3">
+      {/* Header Section */}
+      <XStack px="$1" ai="center" gap="$2">
+        <UserPlus size={14} color="$color" opacity={0.5} />
+        <Text
+          fontSize={11}
+          fontWeight="700"
+          o={0.5}
+          textTransform="uppercase"
+          letterSpacing={0.5}
+        >
+          Assignees
+        </Text>
       </XStack>
 
+      {/* Member avatars list */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <XStack gap="$3" px="$1">
+        <XStack gap="$4" px="$1">
           {members.map((member) => {
-            const isSelected = assignedMemberIds.includes(member.memberId);
-            const { initials, color } = getTeamAvatar(member.memberName);
+            const isAssigned = assignedMemberIds.includes(member.memberId);
+            const { initials, color } = getInitials(member.memberName);
 
             return (
               <YStack
                 key={member.memberId}
                 ai="center"
-                gap="$1"
+                gap="$1.5"
                 onPress={() => onToggle(member.memberId)}
-                pressStyle={{ scale: 0.97 }}
+                pressStyle={{ scale: 0.95 }}
                 hitSlop={10}
               >
-                <Avatar
-                  circular
-                  size="$4"
-                  borderWidth={2}
-                  borderColor={isSelected ? "$blue10" : "transparent"}
-                  o={isSelected ? 1 : 0.7}
-                  pointerEvents="none"
-                >
-                  <Avatar.Fallback
-                    ai="center"
-                    jc="center"
-                    backgroundColor={color}
+                {/* Avatar with check badge wrapper */}
+                <YStack position="relative">
+                  <Avatar
+                    circular
+                    size="$5"
+                    borderWidth={2.5}
+                    borderColor={isAssigned ? "$blue9" : "transparent"}
+                    o={isAssigned ? 1 : 0.55}
+                    pointerEvents="none"
                   >
-                    <Text color="white" fontWeight="bold" fontSize={14}>
-                      {initials}
-                    </Text>
-                  </Avatar.Fallback>
-                </Avatar>
+                    <Avatar.Fallback
+                      ai="center"
+                      jc="center"
+                      backgroundColor={color}
+                    >
+                      <Text color="white" fontWeight="bold" fontSize={15}>
+                        {initials}
+                      </Text>
+                    </Avatar.Fallback>
+                  </Avatar>
+
+                  {/* Check badge overlay */}
+                  {isAssigned && (
+                    <YStack
+                      position="absolute"
+                      bottom={-2}
+                      right={-2}
+                      w={18}
+                      h={18}
+                      br="$10"
+                      bg="$blue9"
+                      ai="center"
+                      jc="center"
+                      pointerEvents="none"
+                    >
+                      <Check size={10} color="white" strokeWidth={3} />
+                    </YStack>
+                  )}
+                </YStack>
 
                 <Text
                   fontSize={10}
-                  fontWeight={isSelected ? "bold" : "normal"}
-                  color={isSelected ? "$blue10" : "$color"}
+                  fontWeight={isAssigned ? "700" : "400"}
+                  color={isAssigned ? "$blue10" : "$color"}
+                  opacity={isAssigned ? 1 : 0.5}
                   pointerEvents="none"
                 >
-                  {member.memberName.split(" ")[0]}
+                  {member.memberName.split(" ")[1]
+                    ? member.memberName.split(" ")[0]
+                    : member.memberName}
                 </Text>
               </YStack>
             );

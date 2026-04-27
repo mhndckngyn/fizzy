@@ -1,4 +1,4 @@
-import { getTeamAvatar } from "@/features/main/_shared/helpers";
+import { getInitials } from "@/features/main/_shared/helpers";
 import { Member } from "@/features/main/members/types";
 import { Check, UserPlus } from "@tamagui/lucide-icons-2";
 import React from "react";
@@ -18,13 +18,12 @@ export function AssignCardSection({
   isPending,
 }: AssignCardSectionProps) {
   return (
-    <YStack gap="$3" py="$3">
-      {/* Label row */}
+    <YStack gap="$3">
       <XStack px="$1" ai="center" gap="$2">
         <UserPlus size={14} color="$color" opacity={0.5} />
         <Text
-          fontSize={12}
-          fontWeight="600"
+          fontSize={11}
+          fontWeight="700"
           o={0.5}
           textTransform="uppercase"
           letterSpacing={0.5}
@@ -39,7 +38,7 @@ export function AssignCardSection({
         <XStack gap="$4" px="$1">
           {members.map((member) => {
             const isAssigned = assignedMemberIds.includes(member.memberId);
-            const { initials, color } = getTeamAvatar(member.memberName);
+            const { initials, color } = getInitials(member.memberName);
 
             return (
               <YStack

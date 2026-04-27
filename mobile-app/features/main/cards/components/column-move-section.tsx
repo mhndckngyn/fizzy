@@ -1,11 +1,6 @@
-import {
-  CheckCircle,
-  Clock,
-  HelpCircle,
-  Layers,
-} from "@tamagui/lucide-icons-2";
+import { Columns3 } from "@tamagui/lucide-icons-2";
 import React from "react";
-import { Button, ScrollView, Separator, Text, XStack, YStack } from "tamagui";
+import { Button, ScrollView, Text, XStack, YStack } from "tamagui";
 
 type ColumnItem = {
   columnId: string;
@@ -29,6 +24,8 @@ type ColumnMoveSectionProps = {
   isPending?: boolean;
 };
 
+const SPECIAL_COLOR = "#3d4e65";
+
 export function ColumnMoveSection({
   columns,
   currentTarget,
@@ -47,38 +44,27 @@ export function ColumnMoveSection({
   const renderStatusButton = (config: {
     target: ColumnMoveTarget;
     label: string;
-    icon: React.FC<any>;
-    activeBg: string;
-    activeBorder: string;
-    inactiveBg: string;
   }) => {
     const isActive = isActiveTarget(config.target);
-    const Icon = config.icon;
+
+    // Logic for special buttons
+    const bgColor = isActive ? SPECIAL_COLOR : `${SPECIAL_COLOR}15`;
+    const textColor = isActive ? "white" : SPECIAL_COLOR;
+    const borderColor = isActive ? SPECIAL_COLOR : `${SPECIAL_COLOR}30`;
+
     return (
       <Button
         key={config.label}
-        size="$3"
+        size="$2.5"
         br="$10"
         onPress={() => !isPending && onMove(config.target)}
-        backgroundColor={isActive ? config.activeBg : config.inactiveBg}
-        borderColor={isActive ? config.activeBorder : "transparent"}
+        backgroundColor={bgColor}
+        borderColor={borderColor}
         borderWidth={1}
         pressStyle={{ opacity: 0.8, scale: 0.97 }}
         disabled={isPending || isActive}
-        opacity={isActive ? 1 : 0.85}
-        gap="$1.5"
       >
-        <Icon
-          size={13}
-          color={isActive ? "white" : "$color"}
-          opacity={isActive ? 1 : 0.6}
-        />
-        <Text
-          fontSize={12}
-          fontWeight="600"
-          color={isActive ? "white" : "$color"}
-          opacity={isActive ? 1 : 0.7}
-        >
+        <Text fontSize={12} fontWeight="600" color={textColor}>
           {config.label}
         </Text>
       </Button>
@@ -86,106 +72,67 @@ export function ColumnMoveSection({
   };
 
   return (
-    <YStack gap="$3" py="$3">
-      {/* Section label */}
-      <XStack px="$1" ai="center" gap="$2">
-        <Layers size={14} color="$color" opacity={0.5} />
+    <YStack gap="$2.5">
+      <XStack ai="center" gap="$2" opacity={0.5}>
+        <Columns3 size={14} color="$color" />
         <Text
-          fontSize={12}
-          fontWeight="600"
-          o={0.5}
+          fontSize={11}
+          fontWeight="700"
           textTransform="uppercase"
-          letterSpacing={0.5}
+          letterSpacing={1}
         >
-          Move to
+          Target Column
         </Text>
       </XStack>
 
-      {/* Row 1: Not Now + Maybe */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <XStack gap="$2" px="$1">
+        <XStack gap="$2">
           {renderStatusButton({
             target: { type: "not-now" },
             label: "Not Now",
-            icon: Clock,
-            activeBg: "$gray8",
-            activeBorder: "$gray9",
-            inactiveBg: "$gray3",
           })}
           {renderStatusButton({
             target: { type: "maybe" },
             label: "Maybe",
-            icon: HelpCircle,
-            activeBg: "$yellow9",
-            activeBorder: "$yellow10",
-            inactiveBg: "$yellow3",
+          })}
+
+          {columns.map((col) => {
+            const target: ColumnMoveTarget = {
+              type: "column",
+              columnId: col.columnId,
+            };
+            const isActive = isActiveTarget(target);
+
+            const colColor = col.color || "#8f9297";
+            const bgColor = isActive ? colColor : `${colColor}15`;
+            const textColor = isActive ? "white" : colColor;
+            const borderColor = isActive ? colColor : `${colColor}30`;
+
+            return (
+              <Button
+                key={col.columnId}
+                size="$2.5"
+                br="$10"
+                onPress={() => !isPending && onMove(target)}
+                backgroundColor={bgColor}
+                borderColor={borderColor}
+                borderWidth={1}
+                pressStyle={{ opacity: 0.8, scale: 0.97 }}
+                disabled={isPending || isActive}
+              >
+                <Text fontSize={12} fontWeight="600" color={textColor}>
+                  {col.name}
+                </Text>
+              </Button>
+            );
+          })}
+
+          {renderStatusButton({
+            target: { type: "done" },
+            label: "Done",
           })}
         </XStack>
       </ScrollView>
-
-      {/* Row 2: Custom columns */}
-      {columns.length > 0 && (
-        <>
-          <Separator mx="$1" opacity={0.15} />
-          <Text
-            px="$1"
-            fontSize={11}
-            fontWeight="500"
-            o={0.4}
-            textTransform="uppercase"
-            letterSpacing={0.5}
-          >
-            Columns
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <XStack gap="$2" px="$1">
-              {columns.map((col) => {
-                const target: ColumnMoveTarget = {
-                  type: "column",
-                  columnId: col.columnId,
-                };
-                const isActive = isActiveTarget(target);
-                return (
-                  <Button
-                    key={col.columnId}
-                    size="$3"
-                    br="$10"
-                    onPress={() => !isPending && onMove(target)}
-                    backgroundColor={isActive ? "$blue9" : "$blue3"}
-                    borderColor={isActive ? "$blue10" : "transparent"}
-                    borderWidth={1}
-                    pressStyle={{ opacity: 0.8, scale: 0.97 }}
-                    disabled={isPending || isActive}
-                    opacity={isActive ? 1 : 0.85}
-                  >
-                    <Text
-                      fontSize={12}
-                      fontWeight="600"
-                      color={isActive ? "white" : "$blue11"}
-                      opacity={isActive ? 1 : 0.8}
-                    >
-                      {col.name}
-                    </Text>
-                  </Button>
-                );
-              })}
-            </XStack>
-          </ScrollView>
-        </>
-      )}
-
-      {/* Row 3: Done — always last */}
-      <Separator mx="$1" opacity={0.15} />
-      <XStack px="$1">
-        {renderStatusButton({
-          target: { type: "done" },
-          label: "Done",
-          icon: CheckCircle,
-          activeBg: "$green9",
-          activeBorder: "$green10",
-          inactiveBg: "$green3",
-        })}
-      </XStack>
     </YStack>
   );
 }

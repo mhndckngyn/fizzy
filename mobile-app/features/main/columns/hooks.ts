@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCurrentBoardParams, useCurrentTeamParams } from "../_shared/hooks";
+import { useCurrentTeamParams } from "../_shared/hooks";
 import { queryKeys } from "../_shared/query-keys";
 import {
   changeColumnPosition,
