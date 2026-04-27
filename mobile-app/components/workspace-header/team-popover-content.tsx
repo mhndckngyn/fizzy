@@ -1,4 +1,4 @@
-import { useBoards } from "@/features/main/boards/hooks";
+import { useBoards } from "@/features/main/boards/use-boards";
 import {
   ClipboardList,
   Home,

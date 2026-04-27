@@ -1,6 +1,6 @@
 import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
-import { useBoards } from "@/features/main/boards/hooks";
+import { useBoards } from "@/features/main/boards/use-boards";
 import { AssignCardSection } from "@/features/main/cards/components/assign-card-section";
 import CardStaticView from "@/features/main/cards/components/card-details-page/static-view";
 import {
@@ -12,20 +12,21 @@ import {
   ColumnMoveSection,
   ColumnMoveTarget,
 } from "@/features/main/cards/components/column-move-section";
+import { useCard } from "@/features/main/cards/use-card";
+import { useCardMention } from "@/features/main/cards/use-card-mention";
+import { useUpdateCard } from "@/features/main/cards/use-update-card";
 import {
   useAssignCard,
-  useCard,
-  useCardMention,
+  useUnassignCard,
+} from "@/features/main/cards/use-assign-card";
+import {
   useMoveCardToBoard,
   useMoveCardToColumn,
-  useMoveCardToDone,
-  useMoveCardToMaybe,
-  useMoveCardToNotNow,
-  useUnassignCard,
-  useUpdateCard,
-} from "@/features/main/cards/hooks";
-import { useColumnsbyBoardId } from "@/features/main/columns/hooks";
-import { useMemberMention, useMembers } from "@/features/main/members/hooks";
+  useMoveCardToSpecialColumn,
+} from "@/features/main/cards/use-move-card";
+import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
+import { useMembers } from "@/features/main/members/use-members";
+import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { ArrowLeft, Save, X } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -130,23 +131,14 @@ export default function CardDetailPage() {
     useAssignCard(boardId);
   const { mutateAsync: unassignCard, isPending: isUnassigning } =
     useUnassignCard(boardId);
-  const { mutateAsync: moveToMaybe, isPending: isMovingMaybe } =
-    useMoveCardToMaybe(boardId);
-  const { mutateAsync: moveToDone, isPending: isMovingDone } =
-    useMoveCardToDone(boardId);
-  const { mutateAsync: moveToNotNow, isPending: isMovingNotNow } =
-    useMoveCardToNotNow(boardId);
+  const { mutateAsync: moveSpecial, isPending: isMovingSpecial } =
+    useMoveCardToSpecialColumn(boardId);
   const { mutateAsync: moveToColumn, isPending: isMovingColumn } =
     useMoveCardToColumn(boardId);
   const { mutateAsync: moveToBoard, isPending: isMovingBoard } =
     useMoveCardToBoard(boardId);
 
-  const isMovePending =
-    isMovingBoard ||
-    isMovingMaybe ||
-    isMovingDone ||
-    isMovingNotNow ||
-    isMovingColumn;
+  const isMovePending = isMovingBoard || isMovingSpecial || isMovingColumn;
   const isAssignPending = isAssigning || isUnassigning;
 
   const currentTarget = cardData ? resolveCurrentTarget(cardData) : undefined;
@@ -214,12 +206,12 @@ export default function CardDetailPage() {
 
   const handleMove = async (target: ColumnMoveTarget) => {
     try {
-      if (target.type === "maybe") {
-        await moveToMaybe({ teamId, boardId, cardId });
-      } else if (target.type === "done") {
-        await moveToDone({ teamId, boardId, cardId });
-      } else if (target.type === "not-now") {
-        await moveToNotNow({ teamId, boardId, cardId });
+      if (
+        target.type === "maybe" ||
+        target.type === "done" ||
+        target.type === "not-now"
+      ) {
+        await moveSpecial({ teamId, boardId, cardId, target: target.type });
       } else if (target.type === "column") {
         await moveToColumn({
           teamId,

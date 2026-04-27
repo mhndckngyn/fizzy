@@ -1,14 +1,16 @@
 import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
-import { useBoards } from "@/features/main/boards/hooks";
+import { useBoards } from "@/features/main/boards/use-boards";
 import {
   BoardSelector,
   CardBodyEditor,
   CardTitleInput,
   MemberAssignSelector,
 } from "@/features/main/cards/components/card-form-components";
-import { useCardMention, useCreateCard } from "@/features/main/cards/hooks";
-import { useMemberMention, useMembers } from "@/features/main/members/hooks";
+import { useCardMention } from "@/features/main/cards/use-card-mention";
+import { useCreateCard } from "@/features/main/cards/use-create-card";
+import { useMembers } from "@/features/main/members/use-members";
+import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { ArrowLeft } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";

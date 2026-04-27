@@ -1,5 +1,5 @@
 // app/index.tsx
-import { useSession } from "@/features/user/hooks";
+import { useSession } from "@/features/user/use-session";
 import { Redirect } from "expo-router";
 import { Spinner, YStack } from "tamagui";
 

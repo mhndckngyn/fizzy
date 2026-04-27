@@ -4,8 +4,8 @@ import {
   useCurrentTeamParams,
 } from "@/features/main/_shared/hooks";
 import AddColumnButton from "@/features/main/boards/components/add-column-button";
-import { useBoards } from "@/features/main/boards/hooks";
-import { useGroupedBoardCards } from "@/features/main/cards/hooks";
+import { useBoards } from "@/features/main/boards/use-boards";
+import { useGroupedBoardCards } from "@/features/main/cards/use-grouped-board-cards";
 import { BoardColumn } from "@/features/main/columns/components/board-column";
 import { BoardSpecialColumn } from "@/features/main/columns/components/board-special-column";
 import { DeleteColumnDialog } from "@/features/main/columns/components/delete-column-dialog";
