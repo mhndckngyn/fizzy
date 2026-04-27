@@ -1,4 +1,4 @@
-import { useCreateTeam } from "@/features/main/teams/hooks";
+import { useCreateTeam } from "@/features/main/teams/use-create-team";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
