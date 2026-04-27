@@ -106,9 +106,6 @@ export const useCreateCard = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.boardCards(teamId, variables.boardId),
       });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.members(teamId),
-      });
     },
   });
 };
