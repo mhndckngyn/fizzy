@@ -1,5 +1,5 @@
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
-import { useCreateBoard } from "@/features/main/boards/hooks";
+import { useCreateBoard } from "@/features/main/boards/use-create-board";
 import { ArrowRight } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";

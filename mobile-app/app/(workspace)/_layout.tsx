@@ -1,5 +1,5 @@
 import WorkspaceHeader from "@/components/workspace-header";
-import { useSession } from "@/features/user/hooks";
+import { useSession } from "@/features/user/use-session";
 import { Redirect, Stack } from "expo-router";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";

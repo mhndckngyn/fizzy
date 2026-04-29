@@ -1,5 +1,5 @@
 import TeamCard from "@/features/main/teams/components/team-card";
-import { useTeams } from "@/features/main/teams/hooks";
+import { useTeams } from "@/features/main/teams/use-teams";
 import { Plus, Users } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import { FlatList, RefreshControl } from "react-native";

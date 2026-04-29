@@ -1,5 +1,5 @@
 import { FizzyLogo } from "@/components/fizzy-logo";
-import { useVerifyOtp } from "@/features/user/hooks";
+import { useVerifyOtp } from "@/features/user/use-verify-otp";
 import { authClient } from "@/lib/auth-client";
 import { ArrowRight } from "@tamagui/lucide-icons-2";
 import { useLocalSearchParams } from "expo-router";

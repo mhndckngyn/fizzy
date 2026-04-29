@@ -1,18 +1,6 @@
 import { EditorMentionItem } from "@/components/tiptap/tiptap-templates/simple/mention-suggestion";
-import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { useCurrentTeamParams } from "../_shared/hooks";
-import { queryKeys } from "../_shared/query-keys";
-import { getMembers } from "./api";
-
-export const useMembers = () => {
-  const { teamId } = useCurrentTeamParams();
-
-  return useQuery({
-    queryKey: queryKeys.members(teamId),
-    queryFn: () => getMembers({ teamId }),
-  });
-};
+import { useMembers } from "./use-members";
 
 // using this in case the member object grows larger
 export const useMemberMention = () => {

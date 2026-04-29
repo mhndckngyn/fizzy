@@ -1,5 +1,5 @@
-import { useTeams } from "@/features/main/teams/hooks";
-import { useSignOut } from "@/features/user/hooks";
+import { useTeams } from "@/features/main/teams/use-teams";
+import { useSignOut } from "@/features/user/use-sign-out";
 import {
   Building2,
   LogOut,

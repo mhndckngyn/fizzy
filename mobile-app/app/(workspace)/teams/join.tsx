@@ -1,9 +1,9 @@
 import { getInitials } from "@/features/main/_shared/helpers";
 import {
   useGetInvitationInfoMutation,
-  useJoinTeam,
-} from "@/features/main/join/hooks";
-import { InvitationInfoResponse } from "@/features/main/join/types";
+  InvitationInfoResponse,
+} from "@/features/main/teams/use-get-invitation-info-mutation";
+import { useJoinTeam } from "@/features/main/teams/use-join-team";
 import { ClipboardPaste } from "@tamagui/lucide-icons-2";
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";

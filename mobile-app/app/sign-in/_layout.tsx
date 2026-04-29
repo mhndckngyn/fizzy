@@ -1,4 +1,4 @@
-import { useSession } from "@/features/user/hooks";
+import { useSession } from "@/features/user/use-session";
 import { Redirect, Stack } from "expo-router";
 
 export default function SigninLayout() {
