@@ -24,7 +24,7 @@ import {
   useMoveCardToSpecialColumn,
 } from "@/features/main/cards/use-move-card";
 import { useUpdateCard } from "@/features/main/cards/use-update-card";
-import { useColumnsbyBoardId } from "@/features/main/columns/hooks";
+import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
 import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { useMembers } from "@/features/main/members/use-members";
 import { ArrowLeft, Save, X } from "@tamagui/lucide-icons-2";

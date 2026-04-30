@@ -10,11 +10,9 @@ import { BoardColumn } from "@/features/main/columns/components/board-column";
 import { BoardSpecialColumn } from "@/features/main/columns/components/board-special-column";
 import { DeleteColumnDialog } from "@/features/main/columns/components/delete-column-dialog";
 import { ManageColumnSheet } from "@/features/main/columns/components/manage-column-sheet";
-import {
-  useCreateColumn,
-  useUpdateColumn,
-} from "@/features/main/columns/hooks";
 import { ColumnWithCards } from "@/features/main/columns/types";
+import { useCreateColumn } from "@/features/main/columns/use-create-column";
+import { useUpdateColumn } from "@/features/main/columns/use-update-column";
 import { Plus, Settings } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";

@@ -7,7 +7,7 @@ import {
   useCurrentTeamParams,
 } from "../../_shared/hooks";
 import CardPreview from "../../cards/components/card-preview";
-import { useChangeColumnPosition } from "../hooks";
+import { useChangeColumnPosition } from "../use-change-column-position";
 import { ColumnActionsPopover } from "./column-actions-popover";
 
 interface BoardColumnProps {
