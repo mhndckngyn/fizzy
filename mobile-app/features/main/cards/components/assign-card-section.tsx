@@ -53,7 +53,7 @@ export function AssignCardSection({
                 <YStack position="relative">
                   <Avatar
                     circular
-                    size="$5"
+                    size="$4"
                     borderWidth={2.5}
                     borderColor={isAssigned ? "$blue9" : "transparent"}
                     o={isAssigned ? 1 : 0.55}
