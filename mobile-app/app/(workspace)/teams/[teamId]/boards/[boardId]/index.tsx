@@ -1,3 +1,4 @@
+import ConfirmationDialog from "@/components/confirmation-dialog";
 import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import {
   useCurrentBoardParams,
@@ -8,13 +9,10 @@ import { useBoards } from "@/features/main/boards/use-boards";
 import { useGroupedBoardCards } from "@/features/main/cards/use-grouped-board-cards";
 import { BoardColumn } from "@/features/main/columns/components/board-column";
 import { BoardSpecialColumn } from "@/features/main/columns/components/board-special-column";
-import { DeleteColumnDialog } from "@/features/main/columns/components/delete-column-dialog";
 import { ManageColumnSheet } from "@/features/main/columns/components/manage-column-sheet";
-import {
-  useCreateColumn,
-  useUpdateColumn,
-} from "@/features/main/columns/hooks";
 import { ColumnWithCards } from "@/features/main/columns/types";
+import { useCreateColumn } from "@/features/main/columns/use-create-column";
+import { useUpdateColumn } from "@/features/main/columns/use-update-column";
 import { Plus, Settings } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
@@ -196,8 +194,12 @@ export default function KanbanBoard() {
         onSubmit={handleSheetSubmit}
       />
 
-      <DeleteColumnDialog
+      <ConfirmationDialog
         open={deleteDialogOpen}
+        dialogTitle="Delete Column"
+        dialogDescription="Are you sure you want to delete this column? This will move the cards back to Maybe."
+        confirmText="Delete"
+        cancelText="Cancel"
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
       />

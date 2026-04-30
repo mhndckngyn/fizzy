@@ -1,17 +1,25 @@
 import React from "react";
 import { Button, Dialog, Text, XStack } from "tamagui";
 
-interface DeleteColumnDialogProps {
+interface ConfirmationDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  dialogTitle: string;
+  dialogDescription: string;
+  confirmText?: string;
+  cancelText?: string;
+  onOpenChange: (isOpen: boolean) => void;
   onConfirm: () => void;
 }
 
-export function DeleteColumnDialog({
+export default function ConfirmationDialog({
   open,
-  onOpenChange,
+  dialogTitle,
+  dialogDescription,
+  confirmText = "Yes",
+  cancelText = "No",
   onConfirm,
-}: DeleteColumnDialogProps) {
+  onOpenChange,
+}: ConfirmationDialogProps) {
   return (
     <Dialog modal open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -36,29 +44,26 @@ export function DeleteColumnDialog({
           y={0}
         >
           <Dialog.Title fontSize={20} fontWeight="bold" col="$color">
-            Delete Column
+            {dialogTitle}
           </Dialog.Title>
           <Dialog.Description col="$color" fontSize={15} opacity={0.8}>
-            Are you sure you want to delete this column? This will move the
-            cards back to Maybe.
+            {dialogDescription}
           </Dialog.Description>
 
-          <XStack jc="flex-end" gap="$3" mt="$4">
+          <XStack jc="flex-end" gap="$3" mt="$2">
             <Dialog.Close asChild>
-              <Button>
-                <Text fontWeight="bold">Cancel</Text>
+              <Button backgroundColor={"$colorTransparent"}>
+                <Text fontWeight="bold">{cancelText}</Text>
               </Button>
             </Dialog.Close>
             <Button
-              bg="$red10"
+              theme="red" /* add theme/confirmType props */
               onPress={() => {
                 onConfirm();
                 onOpenChange(false);
               }}
             >
-              <Text col="white" fontWeight="bold">
-                Delete
-              </Text>
+              <Button.Text fontWeight="bold">{confirmText}</Button.Text>
             </Button>
           </XStack>
         </Dialog.Content>

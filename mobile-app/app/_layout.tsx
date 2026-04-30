@@ -13,6 +13,8 @@ import { queryClient } from "@/lib/query-client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { tamaguiConfig } from "../tamagui.config";
 
+import { KeyboardProvider } from "react-native-keyboard-controller";
+
 function RootLayoutNav() {
   const theme = useTheme();
   const themeName = useThemeName();
@@ -49,13 +51,16 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TamaguiProvider
-        config={tamaguiConfig}
-        defaultTheme={colorScheme === "dark" ? "dark" : "light"}
-      >
-        <RootLayoutNav />
-      </TamaguiProvider>
-    </QueryClientProvider>
+    <KeyboardProvider>
+      <QueryClientProvider client={queryClient}>
+        <TamaguiProvider
+          config={tamaguiConfig}
+          // defaultTheme={colorScheme === "dark" ? "dark" : "light"}
+          defaultTheme="light"
+        >
+          <RootLayoutNav />
+        </TamaguiProvider>
+      </QueryClientProvider>
+    </KeyboardProvider>
   );
 }

@@ -2,6 +2,7 @@ import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useBoards } from "@/features/main/boards/use-boards";
 import { AssignCardSection } from "@/features/main/cards/components/assign-card-section";
+import CommentSection from "@/features/main/cards/components/card-details-page/comment-section";
 import CardStaticView from "@/features/main/cards/components/card-details-page/static-view";
 import {
   BoardSelector,
@@ -24,13 +25,14 @@ import {
   useMoveCardToSpecialColumn,
 } from "@/features/main/cards/use-move-card";
 import { useUpdateCard } from "@/features/main/cards/use-update-card";
-import { useColumnsbyBoardId } from "@/features/main/columns/hooks";
+import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
 import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { useMembers } from "@/features/main/members/use-members";
 import { ArrowLeft, Save, X } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import {
   Button,
   Card,
@@ -247,182 +249,191 @@ export default function CardDetailPage() {
 
   return (
     <View f={1}>
-      <ScrollView>
-        <YStack p="$2" gap="$3">
-          <Card borderRadius="$1" backgroundColor={bgColor}>
-            <XStack>
-              <XStack
-                gap="$2"
-                ai="center"
-                backgroundColor={columnColor}
-                paddingHorizontal="$3"
-                paddingVertical="$1.5"
-                borderTopLeftRadius="$1"
-                borderBottomRightRadius="$1"
-                display={"inline"}
-              >
-                <Text color="white" fontWeight="900" fontSize="$1">
-                  {cardData.no}
-                </Text>
-                <Separator
-                  vertical
-                  borderColor="white"
-                  opacity={0.5}
-                  height={15}
-                />
-                <Text
-                  color="white"
-                  fontWeight="700"
-                  fontSize="$1"
-                  textTransform="uppercase"
-                  letterSpacing={1}
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={90}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <YStack p="$2" gap="$3">
+            {/* VIEW OR EDIT CARD */}
+            <Card borderRadius="$1" backgroundColor={bgColor}>
+              {/* HEADER */}
+              <XStack>
+                <XStack
+                  gap="$2"
+                  ai="center"
+                  backgroundColor={columnColor}
+                  paddingHorizontal="$3"
+                  paddingVertical="$1.5"
+                  borderTopLeftRadius="$1"
+                  borderBottomRightRadius="$1"
+                  display={"inline"}
                 >
-                  {boardName}
-                </Text>
+                  <Text color="white" fontWeight="900" fontSize="$2">
+                    {cardData.no}
+                  </Text>
+                  <Separator
+                    vertical
+                    borderColor="white"
+                    opacity={0.5}
+                    height={15}
+                  />
+                  <Text
+                    color="white"
+                    fontWeight="700"
+                    fontSize="$2"
+                    textTransform="uppercase"
+                    letterSpacing={1}
+                  >
+                    {boardName}
+                  </Text>
+                </XStack>
               </XStack>
-            </XStack>
-
-            <View padding="$3" paddingTop="$2">
-              {!isEditing && (
-                <CardStaticView
-                  teamId={teamId}
-                  title={title}
-                  htmlContent={description}
-                  activeColor={columnColor}
-                  onEditPress={() => setEditing(true)}
-                />
-              )}
-
-              {/* EDIT MODE */}
-              <YStack
-                position={isEditing ? "relative" : "absolute"}
-                top={isEditing ? 0 : -9999}
-                left={isEditing ? 0 : -9999}
-                opacity={isEditing ? 1 : 0}
-                pointerEvents={isEditing ? "auto" : "none"}
-                width="100%"
-                zIndex={isEditing ? 1 : -1}
-              >
-                <CardTitleInput
-                  value={title}
-                  onChange={(v) => {
-                    setTitle(v);
-                    setIsDirty(true);
-                  }}
-                />
-
-                <YStack mt="$2">
-                  <CardBodyEditor
-                    key={cardId}
-                    initialContent={description}
-                    onContentChange={(html) => {
-                      setDescription(html);
+              {/* VIEW MODE */}
+              <View padding="$3" paddingTop="$2">
+                {!isEditing && (
+                  <CardStaticView
+                    teamId={teamId}
+                    title={title}
+                    htmlContent={description}
+                    activeColor={columnColor}
+                    onEditPress={() => setEditing(true)}
+                  />
+                )}
+                {/* EDIT MODE */}
+                <YStack
+                  position={isEditing ? "relative" : "absolute"}
+                  top={isEditing ? 0 : -9999}
+                  left={isEditing ? 0 : -9999}
+                  opacity={isEditing ? 1 : 0}
+                  pointerEvents={isEditing ? "auto" : "none"}
+                  width="100%"
+                  zIndex={isEditing ? 1 : -1}
+                >
+                  <CardTitleInput
+                    value={title}
+                    onChange={(v) => {
+                      setTitle(v);
                       setIsDirty(true);
                     }}
-                    memberList={memberMentionList}
-                    cardList={cardMentionList}
                   />
-                </YStack>
-
-                {/* Action Buttons */}
-                <XStack mt="$4" gap="$3">
-                  <Button
-                    flex={1}
-                    size="$4"
-                    backgroundColor="$gray5"
-                    br="$5"
-                    onPress={handleCancelEdit}
-                    disabled={isUpdating}
-                    icon={<X size={16} color="$gray11" />}
-                  >
-                    <Button.Text color="$gray11" fontWeight="bold">
-                      Cancel
-                    </Button.Text>
-                  </Button>
-
-                  <Button
-                    flex={1}
-                    size="$4"
-                    backgroundColor="$blue9"
-                    br="$5"
-                    onPress={handleSave}
-                    disabled={isUpdating || !isDirty}
-                    opacity={isUpdating || !isDirty ? 0.5 : 1}
-                    icon={
-                      isUpdating ? (
-                        <Spinner color="white" />
-                      ) : (
-                        <Save size={16} color="white" />
-                      )
-                    }
-                  >
-                    <Button.Text color="white" fontWeight="bold">
-                      {isUpdating ? "Saving..." : "Save Changes"}
-                    </Button.Text>
-                  </Button>
-                </XStack>
-              </YStack>
-            </View>
-          </Card>
-
-          <Card
-            p="$3"
-            gap="$2"
-            borderRadius="$4"
-            overflow="hidden"
-            backgroundColor={bgColor}
-          >
-            <ZStack>
-              <YStack opacity={isMovePending ? 0.5 : 1}>
-                <BoardSelector
-                  boards={boards?.boards ?? []}
-                  selectedBoardId={boardId}
-                  onSelect={(id) => {
-                    setBoardId(id);
-                    handleMoveToBoard(id);
-                  }}
-                  disabled={isMovePending}
-                />
-
-                <Separator my="$3.5" borderColor="$gray7" opacity={0.5} />
-
-                <ColumnMoveSection
-                  columns={columns ?? []}
-                  currentTarget={currentTarget}
-                  onMove={handleMove}
-                  isPending={isMovePending}
-                />
-              </YStack>
-
-              {isMovePending && (
-                <YStack
-                  position="absolute"
-                  fullscreen
-                  ai="center"
-                  jc="center"
-                  backgroundColor="$backgroundTransparent"
-                  zIndex={10}
-                >
-                  <XStack gap="$1.5" ai="center">
-                    <Spinner size="small" color="$blue10" />
-                    <Text fontSize={12} fontWeight="600" color="$blue10">
-                      Moving...
-                    </Text>
+                  <YStack mt="$2">
+                    <CardBodyEditor
+                      key={cardId}
+                      initialContent={description}
+                      onContentChange={(html) => {
+                        setDescription(html);
+                        setIsDirty(true);
+                      }}
+                      memberList={memberMentionList}
+                      cardList={cardMentionList}
+                    />
+                  </YStack>
+                  {/* Action Buttons */}
+                  <XStack mt="$4" gap="$3">
+                    <Button
+                      flex={1}
+                      size="$4"
+                      backgroundColor="$gray5"
+                      br="$5"
+                      onPress={handleCancelEdit}
+                      disabled={isUpdating}
+                      icon={<X size={16} color="$gray11" />}
+                    >
+                      <Button.Text color="$gray11" fontWeight="bold">
+                        Cancel
+                      </Button.Text>
+                    </Button>
+                    <Button
+                      flex={1}
+                      size="$4"
+                      backgroundColor="$blue9"
+                      br="$5"
+                      onPress={handleSave}
+                      disabled={isUpdating || !isDirty}
+                      opacity={isUpdating || !isDirty ? 0.5 : 1}
+                      icon={
+                        isUpdating ? (
+                          <Spinner color="white" />
+                        ) : (
+                          <Save size={16} color="white" />
+                        )
+                      }
+                    >
+                      <Button.Text color="white" fontWeight="bold">
+                        {isUpdating ? "Saving..." : "Save Changes"}
+                      </Button.Text>
+                    </Button>
                   </XStack>
                 </YStack>
-              )}
-            </ZStack>
-          </Card>
-          <Card padding="$3" backgroundColor={bgColor}>
-            <AssignCardSection
-              members={members?.members ?? []}
-              assignedMemberIds={assignedMemberIds}
-              onToggle={handleToggleAssign}
-              isPending={isAssignPending}
-            />
-          </Card>
-        </YStack>
-      </ScrollView>
+              </View>
+            </Card>
+            {/* SELECT BOARD OR COLUMN */}
+            <Card
+              p="$3"
+              gap="$2"
+              borderRadius="$4"
+              overflow="hidden"
+              backgroundColor={bgColor}
+            >
+              <ZStack>
+                <YStack opacity={isMovePending ? 0.5 : 1}>
+                  <BoardSelector
+                    boards={boards?.boards ?? []}
+                    selectedBoardId={boardId}
+                    onSelect={(id) => {
+                      setBoardId(id);
+                      handleMoveToBoard(id);
+                    }}
+                    disabled={isMovePending}
+                  />
+                  <Separator my="$3.5" borderColor="$gray7" opacity={0.5} />
+                  <ColumnMoveSection
+                    columns={columns ?? []}
+                    currentTarget={currentTarget}
+                    onMove={handleMove}
+                    isPending={isMovePending}
+                  />
+                </YStack>
+                {isMovePending && (
+                  <YStack
+                    position="absolute"
+                    fullscreen
+                    ai="center"
+                    jc="center"
+                    backgroundColor="$backgroundTransparent"
+                    zIndex={10}
+                  >
+                    <XStack gap="$1.5" ai="center">
+                      <Spinner size="small" color="$blue10" />
+                      <Text fontSize={12} fontWeight="600" color="$blue10">
+                        Moving...
+                      </Text>
+                    </XStack>
+                  </YStack>
+                )}
+              </ZStack>
+            </Card>
+            {/* ASSIGNMENTS */}
+            <Card padding="$3" backgroundColor={bgColor}>
+              <AssignCardSection
+                members={members?.members ?? []}
+                assignedMemberIds={assignedMemberIds}
+                onToggle={handleToggleAssign}
+                isPending={isAssignPending}
+              />
+            </Card>
+
+            <Separator marginBlock="$2" borderColor="$gray7" opacity={0.5} />
+
+            {cardData && (
+              <YStack pb="$5">
+                <CommentSection cardId={cardData.cardId} />
+              </YStack>
+            )}
+          </YStack>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

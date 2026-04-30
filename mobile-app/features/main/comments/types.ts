@@ -7,24 +7,3 @@ export type Comment = {
   editedAt: string | null;
   isOwner: boolean;
 };
-
-export type GetCommentsResponse = {
-  comments: Comment[];
-};
-
-export type CreateCommentRequest = {
-  teamId: string;
-  cardId: string;
-  body: string;
-};
-
-export type EditCommentRequest = {
-  teamId: string;
-  commentId: string;
-  body: string;
-};
-
-export type DeleteCommentRequest = {
-  teamId: string;
-  commentId: string;
-};
