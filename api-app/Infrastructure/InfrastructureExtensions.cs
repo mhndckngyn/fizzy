@@ -1,6 +1,7 @@
 using Infrastructure.Database;
 using Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +24,7 @@ public static class InfrastructureExtensions
                 options.AddInterceptors(
                     sp.GetRequiredService<AuditableEntitySaveChangesInterceptor>()
                 );
+                options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             }
         );
 

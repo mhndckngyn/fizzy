@@ -18,7 +18,7 @@ public class BoardConfiguration : IEntityTypeConfiguration<Board>
 
         builder
             .HasOne(b => b.Team)
-            .WithMany()
+            .WithMany(t => t.Boards)
             .HasForeignKey(b => b.TeamId)
             .OnDelete(DeleteBehavior.Cascade);
 
