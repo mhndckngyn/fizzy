@@ -1,7 +1,13 @@
 using Carter;
+using Feature.Hubs;
 using Feature.Middlewares;
+using Feature.NotificationFeature.NotificationProcessor;
+using Feature.NotificationFeature.NotificationStrategies;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +15,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddCarter();
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .SetIsOriginAllowed(_ => true) // allow file:// (null origin) and any localhost in dev
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // required for SignalR
+    });
+});
 
 builder.Services.AddMediatR(options =>
 {
@@ -40,7 +59,41 @@ builder
             ValidateAudience = true,
             ValidAudience = builder.Configuration["AuthApi:Audience"],
         };
+        // SignalR WebSocket clients pass the token via query string
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Query["access_token"];
+                if (
+                    !string.IsNullOrEmpty(token)
+                    && context.HttpContext.Request.Path.StartsWithSegments("/hubs")
+                )
+                    context.Token = token;
+                return Task.CompletedTask;
+            },
+        };
     });
+
+builder.Services.AddHangfire(cfg =>
+{
+    cfg.UsePostgreSqlStorage(options =>
+    {
+        options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"));
+    });
+});
+builder.Services.AddHangfireServer();
+
+builder.Services.AddSingleton<EventDispatchInterceptor>();
+builder.Services.AddSingleton<ISaveChangesInterceptor>(sp =>
+    sp.GetRequiredService<EventDispatchInterceptor>()
+);
+
+builder.Services.AddScoped<IEventProcessor, EventProcessor>();
+builder.Services.AddScoped<INotificationStrategy, AssignStrategy>();
+builder.Services.AddScoped<INotificationStrategy, BoardWatcherStrategy>();
+builder.Services.AddScoped<INotificationStrategy, CommentStrategy>();
+builder.Services.AddScoped<INotificationStrategy, MentionStrategy>();
 
 var app = builder.Build();
 
@@ -54,10 +107,15 @@ app.UseHttpsRedirection();
 
 app.UseExceptionHandler(options => { });
 
+app.UseCors();
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<UserProvisioner>();
 
+app.UseHangfireDashboard("/hangfire");
+
 app.MapCarter();
+app.MapHub<NotificationHub>("/hubs/notifications").RequireAuthorization();
 
 app.Run();

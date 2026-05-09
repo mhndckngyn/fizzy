@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Carter;
 using Feature.Extensions;
 using FluentResults;
@@ -21,26 +21,22 @@ public static class ReadNotification
             CancellationToken cancellationToken
         )
         {
-            var notificationMember = await dbContext.NotificationMembers.FirstOrDefaultAsync(
-                nm =>
-                    nm.NotificationId == request.NotificationId
-                    && nm.RecepientMemberId == request.UserId,
-                cancellationToken
-            );
-
-            if (notificationMember is null)
-            {
-                return Result.Fail(
-                    new Error("Notification not found for the user.").WithMetadata("HttpCode", 404)
+            var notification = await dbContext
+                .Notifications.Include(n => n.RecipientMember)
+                .FirstOrDefaultAsync(
+                    n =>
+                        n.Id == request.NotificationId
+                        && n.RecipientMember.UserId == request.UserId,
+                    cancellationToken
                 );
-            }
 
-            if (notificationMember.IsRead)
-            {
-                return Result.Ok();
-            }
+            if (notification is null)
+                return Result.Fail(
+                    new Error("Notification not found.").WithMetadata("HttpCode", 404)
+                );
 
-            notificationMember.MarkAsRead();
+            notification.ReadAt = DateTime.UtcNow;
+            notification.UnreadCount = 0;
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -56,19 +52,13 @@ public static class ReadNotification
                     "api/notifications/{id:guid}/read",
                     async (Guid id, ClaimsPrincipal user, ISender sender) =>
                     {
-                        // Extract userId
-                        var userIdString = user.FindFirstValue(ClaimTypes.NameIdentifier);
-                        if (
-                            string.IsNullOrEmpty(userIdString)
-                            || !Guid.TryParse(userIdString, out var userId)
-                        )
-                        {
+                        Guid? userId = user.GetUserId();
+                        if (userId is null)
                             return Results.Unauthorized();
-                        }
 
-                        var command = new ReadNotificationCommand(id, userId);
-
-                        var result = await sender.Send(command);
+                        var result = await sender.Send(
+                            new ReadNotificationCommand(id, userId.Value)
+                        );
 
                         return result.ToNoContentMinimalApiResult();
                     }
