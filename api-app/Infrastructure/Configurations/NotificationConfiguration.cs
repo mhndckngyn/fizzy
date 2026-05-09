@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,12 +12,35 @@ internal class NotificationConfiguration : IEntityTypeConfiguration<Notification
 
         builder.HasKey(n => n.Id);
 
-        builder.Property(n => n.CardNo).IsRequired();
-        builder.Property(n => n.BoardName).HasMaxLength(255);
-        builder.Property(n => n.Title).HasMaxLength(255).IsRequired();
-        builder.Property(n => n.Message).HasMaxLength(1000);
-        builder.Property(n => n.SenderName).HasMaxLength(255);
+        builder.Property(n => n.UnreadCount).IsRequired();
+        builder.Property(n => n.ReadAt);
+        builder.Property(n => n.UpdatedAt).IsRequired();
+        builder.Property(n => n.RecipientMemberId).IsRequired();
 
-        builder.Property(n => n.NotificationType).HasConversion<string>().HasMaxLength(50);
+        builder.HasIndex(n => new { n.CardId, n.RecipientMemberId });
+
+        builder
+            .HasOne(n => n.Team)
+            .WithMany()
+            .HasForeignKey(n => n.TeamId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder
+            .HasOne(n => n.Card)
+            .WithMany()
+            .HasForeignKey(n => n.CardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasOne(n => n.Event)
+            .WithMany()
+            .HasForeignKey(n => n.EventId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder
+            .HasOne(n => n.RecipientMember)
+            .WithMany()
+            .HasForeignKey(n => n.RecipientMemberId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

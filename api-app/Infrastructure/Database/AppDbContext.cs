@@ -7,13 +7,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Notification> Notifications => Set<Notification>();
-    public DbSet<NotificationMember> NotificationMembers => Set<NotificationMember>();
     public DbSet<Column> Columns => Set<Column>();
     public DbSet<Team> Teams => Set<Team>();
 
     public DbSet<Member> Members => Set<Member>();
 
     public DbSet<Board> Boards => Set<Board>();
+    public DbSet<BoardAccess> BoardAccesses => Set<BoardAccess>();
     public DbSet<Card> Cards => Set<Card>();
     public DbSet<CardNotNow> CardNotNows => Set<CardNotNow>();
     public DbSet<CardMaybe> CardMaybes => Set<CardMaybe>();
@@ -21,6 +21,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CardContent> CardContents => Set<CardContent>();
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<CardAssignment> CardAssignments => Set<CardAssignment>();
+    public DbSet<CardWatch> CardWatches => Set<CardWatch>();
+    public DbSet<Event> Events => Set<Event>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

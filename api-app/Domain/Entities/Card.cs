@@ -24,6 +24,12 @@ public class Card : BaseEntity
     public CardContent? Content { get; set; }
     public ICollection<Comment> Comments { get; set; } = [];
 
+    public ICollection<Event> Events { get; set; } = [];
+
+    public ICollection<CardAssignment> Assignments { get; set; } = [];
+
+    public ICollection<CardWatch> CardWatches { get; set; } = [];
+
     /// <summary>
     /// Chuyển Card về một Column cụ thể
     /// </summary>
@@ -79,6 +85,4 @@ public class Card : BaseEntity
         Maybe = null;
         Done = null;
     }
-
-    public ICollection<CardAssignment> Assignments { get; set; } = [];
 }

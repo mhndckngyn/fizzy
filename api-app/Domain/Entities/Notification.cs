@@ -4,18 +4,34 @@ namespace Domain.Entities;
 
 public class Notification : BaseEntity
 {
-    public int CardNo { get; }
-    public string BoardName { get; } = string.Empty;
+    public Notification(Guid teamId, Guid cardId, Guid eventId, Guid recipientMemberId)
+    {
+        TeamId = teamId;
+        CardId = cardId;
+        EventId = eventId;
+        RecipientMemberId = recipientMemberId;
+        UnreadCount = 1;
+        ReadAt = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
-    public string Title { get; } = string.Empty;
+    public Guid TeamId { get; set; }
 
-    public string Message { get; } = string.Empty;
+    public Team Team { get; set; } = null!;
 
-    public string SenderName { get; } = string.Empty;
+    public Guid CardId { get; set; }
 
-    public NotificationType NotificationType { get; }
+    public Card Card { get; set; } = null!;
 
-    private readonly List<NotificationMember> _notificationMembers = [];
-    public IReadOnlyCollection<NotificationMember> NotificationMembers =>
-        _notificationMembers.AsReadOnly();
+    public Guid EventId { get; set; }
+
+    public Event Event { get; set; } = null!;
+
+    public int UnreadCount { get; set; }
+
+    public DateTime? ReadAt { get; set; }
+
+    public Guid RecipientMemberId;
+
+    public Member RecipientMember { get; set; } = null!;
 }

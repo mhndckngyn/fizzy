@@ -13,7 +13,9 @@ public class Member : BaseEntity
 
     public TeamRole Role { get; set; } = TeamRole.Member;
 
-    public User User { get; set; }
+    public User User { get; set; } = null!;
 
-    public Team Team { get; set; }
+    public Team Team { get; set; } = null!;
+
+    public ICollection<Event> Events { get; set; } = [];
 }
