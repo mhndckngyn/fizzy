@@ -7,7 +7,7 @@ public class CardAssignment : BaseEntity
     public Guid CardId { get; set; }
     public Card Card { get; set; } = null!;
 
-    public Guid BoardId { get; set; }
+    public Guid BoardId { get; set; } // TODO why we need this
     public Board Board { get; set; } = null!;
 
     // Người được assign
