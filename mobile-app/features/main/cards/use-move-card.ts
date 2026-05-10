@@ -72,6 +72,9 @@ function useInvalidateCardQueries(boardId: string) {
         queryKey: queryKeys.card(teamId, cardId),
       });
     }
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.pins(teamId),
+    });
   };
 }
 

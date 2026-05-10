@@ -19,4 +19,6 @@ export const queryKeys = {
 
   comments: (teamId: string, cardId: string) =>
     ["teams", teamId, "cards", cardId, "comments"] as const,
+
+  pins: (teamId: string) => ["pins", teamId] as const,
 };

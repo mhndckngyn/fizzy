@@ -28,7 +28,8 @@ import { useUpdateCard } from "@/features/main/cards/use-update-card";
 import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
 import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { useMembers } from "@/features/main/members/use-members";
-import { ArrowLeft, Save, X } from "@tamagui/lucide-icons-2";
+import { useTogglePin, usePinnedCards } from "@/features/main/pins/use-pins";
+import { ArrowLeft, Save, X, Pin } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
@@ -83,6 +84,11 @@ export default function CardDetailPage() {
   const [isEditing, setEditing] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+  const { data: pinnedCards } = usePinnedCards();
+  const { mutate: togglePin, isPending: isPinning } = useTogglePin();
+
+  const isPinned = pinnedCards?.some((p) => p.cardId === cardId) ?? false;
+
   useEffect(() => {
     if (!cardData) return;
     setTitle(cardData.title ?? "");
@@ -99,32 +105,23 @@ export default function CardDetailPage() {
 
   const columnColor = useMemo(() => {
     const fallbackColor = "#8f9297";
-
-    if (!cardData || !columns) {
-      return fallbackColor;
-    }
-
-    if (cardData.maybeId || cardData.notNowId || cardData.doneId) {
+    if (!cardData || !columns) return fallbackColor;
+    if (cardData.maybeId || cardData.notNowId || cardData.doneId)
       return SPECIAL_COLOR;
-    }
-
     return (
       columns.find((c) => c.columnId === cardData.columnId)?.color ??
       fallbackColor
     );
   }, [cardData, columns]);
+
   const boardName = useMemo(() => {
-    const fallback = "Loading board name";
-
-    if (!cardData || !boards) {
-      return fallback;
-    }
-
+    if (!cardData || !boards) return "Loading board name";
     return (
       boards.boards.find((b) => b.boardId === cardData.boardId)?.name ??
-      fallback
+      "Loading board name"
     );
   }, [cardData, boards]);
+
   const bgColor = `${columnColor}10`;
 
   const { mutateAsync: updateCard, isPending: isUpdating } =
@@ -183,13 +180,11 @@ export default function CardDetailPage() {
 
   const handleToggleAssign = async (memberId: string) => {
     const isCurrentlyAssigned = assignedMemberIds.includes(memberId);
-
     setAssignedMemberIds((prev) =>
       isCurrentlyAssigned
         ? prev.filter((id) => id !== memberId)
         : [...prev, memberId],
     );
-
     try {
       if (isCurrentlyAssigned) {
         await unassignCard({ boardId, cardId, memberId });
@@ -257,8 +252,9 @@ export default function CardDetailPage() {
           <YStack p="$2" gap="$3">
             {/* VIEW OR EDIT CARD */}
             <Card borderRadius="$1" backgroundColor={bgColor}>
-              {/* HEADER */}
-              <XStack>
+              {/* HEADER: card badge + pin button */}
+              <XStack ai="center">
+                {/* Card number + board name badge */}
                 <XStack
                   gap="$2"
                   ai="center"
@@ -288,7 +284,60 @@ export default function CardDetailPage() {
                     {boardName}
                   </Text>
                 </XStack>
+
+                {/* Spacer */}
+                <View flex={1} />
+
+                {/* Pin button — top right of card header */}
+                <XStack
+                  ai="center"
+                  gap="$1.5"
+                  paddingHorizontal="$2.5"
+                  paddingVertical="$1.5"
+                  onPress={() => togglePin(cardId)}
+                  disabled={isPinning}
+                  pressStyle={{ opacity: 0.7 }}
+                >
+                  {isPinning ? (
+                    <Spinner
+                      size="small"
+                      color={isPinned ? "$yellow10" : "$gray9"}
+                    />
+                  ) : (
+                    <XStack
+                      ai="center"
+                      gap="$1.5"
+                      borderRadius="$2"
+                      borderWidth={0.5}
+                      paddingHorizontal="$2"
+                      paddingVertical="$1"
+                      backgroundColor={
+                        isPinned
+                          ? "rgba(240,193,48,0.12)"
+                          : "rgba(255,255,255,0.05)"
+                      }
+                      borderColor={
+                        isPinned
+                          ? "rgba(240,193,48,0.35)"
+                          : "rgba(255,255,255,0.1)"
+                      }
+                    >
+                      <Pin
+                        size={12}
+                        color={isPinned ? "$yellow10" : "$gray9"}
+                      />
+                      <Text
+                        fontSize={10}
+                        fontWeight="600"
+                        color={isPinned ? "$yellow10" : "$gray9"}
+                      >
+                        {isPinned ? "Pinned" : "Pin"}
+                      </Text>
+                    </XStack>
+                  )}
+                </XStack>
               </XStack>
+
               {/* VIEW MODE */}
               <View padding="$3" paddingTop="$2">
                 {!isEditing && (
@@ -368,6 +417,7 @@ export default function CardDetailPage() {
                 </YStack>
               </View>
             </Card>
+
             {/* SELECT BOARD OR COLUMN */}
             <Card
               p="$3"
@@ -414,6 +464,7 @@ export default function CardDetailPage() {
                 )}
               </ZStack>
             </Card>
+
             {/* ASSIGNMENTS */}
             <Card padding="$3" backgroundColor={bgColor}>
               <AssignCardSection

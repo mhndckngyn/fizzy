@@ -21,6 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CardContent> CardContents => Set<CardContent>();
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<CardAssignment> CardAssignments => Set<CardAssignment>();
+    public DbSet<Pin> Pins { get; set; }
     public DbSet<CardWatch> CardWatches => Set<CardWatch>();
     public DbSet<Event> Events => Set<Event>();
 

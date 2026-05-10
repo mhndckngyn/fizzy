@@ -42,6 +42,9 @@ export const useUpdateCard = (boardId: string) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.card(teamId, variables.cardId),
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.pins(teamId),
+      });
     },
   });
 };
