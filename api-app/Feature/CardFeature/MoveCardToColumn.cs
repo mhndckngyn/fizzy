@@ -1,11 +1,16 @@
+using System.Security.Claims;
+using System.Text.Json;
 using Carter;
+using Domain.AppEventMetadata;
+using Domain.Entities;
+using Domain.Enums;
 using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class MoveCardToColumn
 {
@@ -13,7 +18,8 @@ public static class MoveCardToColumn
         Guid TeamId,
         Guid BoardId,
         Guid ColumnId,
-        Guid CardId
+        Guid CardId,
+        Guid UserId
     ) : IRequest<Result>;
 
     internal class MoveCardToColumnHandler(AppDbContext dbContext)
@@ -74,6 +80,41 @@ public static class MoveCardToColumn
                     );
                 }
 
+                Member? member = await dbContext.Members.FirstOrDefaultAsync(
+                    m => m.UserId == request.UserId && m.TeamId == request.TeamId,
+                    cancellationToken
+                );
+
+                if (member is null)
+                    return Result.Fail(
+                        new Error("You are not a member of this team.").WithMetadata(
+                            "HttpCode",
+                            403
+                        )
+                    );
+
+                AppEvent? eventType = null;
+                if (card.ColumnId != null)
+                    eventType = AppEvent.CardColumnChange;
+                else if (
+                    await dbContext.CardDones.AnyAsync(
+                        c => c.CardId == request.CardId,
+                        cancellationToken
+                    )
+                )
+                    eventType = AppEvent.CardReopened;
+                else if (
+                    await dbContext.CardNotNows.AnyAsync(
+                        c => c.CardId == request.CardId,
+                        cancellationToken
+                    )
+                )
+                    eventType = AppEvent.CardResumed;
+
+                string columnMetadata = JsonSerializer.Serialize(
+                    new CardMoveToColumnMetadata { ColumnName = column.Name }
+                );
+
                 // Add Card vào column
                 var domainResult = column.AddCard(card);
                 if (domainResult.IsFailed)
@@ -92,6 +133,19 @@ public static class MoveCardToColumn
                 await dbContext
                     .CardDones.Where(c => c.CardId == request.CardId)
                     .ExecuteDeleteAsync(cancellationToken);
+
+                if (eventType.HasValue)
+                {
+                    dbContext.Events.Add(
+                        new Event(
+                            appEventType: eventType.Value,
+                            teamId: request.TeamId,
+                            creatorMemberId: member.Id,
+                            cardId: card.Id,
+                            metadata: columnMetadata
+                        )
+                    );
+                }
 
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -115,16 +169,34 @@ public static class MoveCardToColumn
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPut(
-                "/api/teams/{teamId:guid}/boards/{boardId:guid}/columns/{columnId:guid}/cards/{cardId:guid}",
-                async (Guid teamId, Guid boardId, Guid columnId, Guid cardId, IMediator mediator) =>
-                {
-                    var command = new MoveCardToColumnCommand(teamId, boardId, columnId, cardId);
+                    "/api/teams/{teamId:guid}/boards/{boardId:guid}/columns/{columnId:guid}/cards/{cardId:guid}",
+                    async (
+                        ClaimsPrincipal user,
+                        Guid teamId,
+                        Guid boardId,
+                        Guid columnId,
+                        Guid cardId,
+                        IMediator mediator
+                    ) =>
+                    {
+                        Guid? userId = user.GetUserId();
+                        if (userId is null)
+                            return Results.Unauthorized();
 
-                    var result = await mediator.Send(command);
+                        var command = new MoveCardToColumnCommand(
+                            teamId,
+                            boardId,
+                            columnId,
+                            cardId,
+                            userId.Value
+                        );
 
-                    return result.ToNoContentMinimalApiResult();
-                }
-            );
+                        var result = await mediator.Send(command);
+
+                        return result.ToNoContentMinimalApiResult();
+                    }
+                )
+                .RequireAuthorization();
         }
     }
 }

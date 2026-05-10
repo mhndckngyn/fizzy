@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Carter;
+using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -7,31 +8,16 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.BoardFeatures;
+namespace Feature.BoardFeature;
 
 public static class GetBoardsByTeam
 {
     internal sealed record GetBoardsQuery(Guid TeamId, Guid UserId)
         : IRequest<Result<GetBoardsResponse>>;
 
-    internal sealed record GetBoardsResponse(List<BoardDto> Boards);
+    internal sealed record GetBoardsResponse(IEnumerable<BoardDto> Boards);
 
-    internal sealed record BoardDto(
-        Guid BoardId,
-        string Name,
-        bool AllAccess,
-        string CreatorName
-    // List<CardDto> NotNowCards,
-    // List<CardDto> MaybeCards,
-    // List<CardDto> DoneCards
-    );
-
-    internal sealed record CardDto(
-        Guid CardId,
-        string? Title,
-        string CreatorName,
-        DateTime UpdatedAt
-    );
+    internal sealed record BoardDto(Guid BoardId, string Name, bool IsWatching);
 
     internal class GetBoardsHandler(AppDbContext dbContext)
         : IRequestHandler<GetBoardsQuery, Result<GetBoardsResponse>>
@@ -41,61 +27,24 @@ public static class GetBoardsByTeam
             CancellationToken cancellationToken
         )
         {
-            bool isMember = await dbContext.Members.AnyAsync(
-                m => m.UserId == request.UserId && m.TeamId == request.TeamId,
-                cancellationToken
-            );
+            Guid? memberId = await dbContext
+                .Members.Where(m => m.UserId == request.UserId && m.TeamId == request.TeamId)
+                .Select(m => (Guid?)m.Id)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (!isMember)
+            if (memberId is null)
                 return Result.Fail("You are not a member of this team.");
 
             List<BoardDto> boards = await dbContext
-                .Boards.Where(b => b.TeamId == request.TeamId)
-                .Select(b => new BoardDto(
-                    b.Id,
-                    b.Name,
-                    b.AllAccess,
-                    b.Creator.Name
-                // // Not now cards
-                // dbContext
-                //     .CardNotNows.Where(n => n.BoardId == b.Id)
-                //     .Select(n => n.Card)
-                //     .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                //     .Select(c => new CardDto(
-                //         c.Id,
-                //         c.Title,
-                //         c.Creator.Name,
-                //         c.UpdatedAt ?? c.CreatedAt
-                //     ))
-                //     .ToList(),
-                // // Maybe cards
-                // dbContext
-                //     .CardMaybes.Where(m => m.BoardId == b.Id)
-                //     .Select(m => m.Card)
-                //     .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                //     .Select(c => new CardDto(
-                //         c.Id,
-                //         c.Title,
-                //         c.Creator.Name,
-                //         c.UpdatedAt ?? c.CreatedAt
-                //     ))
-                //     .ToList(),
-                // // Done cards
-                // dbContext
-                //     .CardDones.Where(d => d.BoardId == b.Id)
-                //     .Select(d => d.Card)
-                //     .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
-                //     .Select(c => new CardDto(
-                //         c.Id,
-                //         c.Title,
-                //         c.Creator.Name,
-                //         c.UpdatedAt ?? c.CreatedAt
-                //     ))
-                //     .ToList()
+                .BoardAccesses.Where(ba => ba.TeamId == request.TeamId && ba.MemberId == memberId)
+                .Select(ba => new BoardDto(
+                    ba.BoardId,
+                    ba.Board.Name,
+                    ba.BoardInvolvement == BoardInvolvement.Watching
                 ))
                 .ToListAsync(cancellationToken);
 
-            return Result.Ok(new GetBoardsResponse(boards));
+            return Result.Ok<GetBoardsResponse>(new GetBoardsResponse(boards));
         }
     }
 
@@ -111,8 +60,9 @@ public static class GetBoardsByTeam
                         if (userId is null)
                             return Results.Unauthorized();
 
-                        GetBoardsQuery query = new(teamId, userId.Value);
-                        Result<GetBoardsResponse> result = await sender.Send(query);
+                        Result<GetBoardsResponse> result = await sender.Send(
+                            new GetBoardsQuery(teamId, userId.Value)
+                        );
 
                         return result.IsFailed
                             ? Results.BadRequest(

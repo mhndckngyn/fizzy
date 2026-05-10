@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Carter;
+using Domain.AppEventMetadata;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -8,14 +11,10 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class AssignCard
 {
-    // ──────────────────────────────────────────────
-    // Assign
-    // ──────────────────────────────────────────────
-
     internal sealed record AssignCardRequest(Guid MemberId);
 
     internal sealed record AssignCardCommand(
@@ -32,7 +31,7 @@ public static class AssignCard
         string AssigneeName
     );
 
-    internal class AssignCardHandler(AppDbContext dbContext)
+    internal class AssignCardHandler(AppDbContext dbContext, ISender sender)
         : IRequestHandler<AssignCardCommand, Result<AssignCardResponse>>
     {
         public async Task<Result<AssignCardResponse>> Handle(
@@ -88,7 +87,28 @@ public static class AssignCard
                 AssignerMemberId = requester.Id,
             };
 
+            CardAssignMetadata metadataObj = new() { AssignedMemberId = assignee.Id };
+            Event assignEvent = new(
+                appEventType: AppEvent.CardAssign,
+                teamId: requester.TeamId,
+                creatorMemberId: requester.Id,
+                cardId: request.CardId,
+                metadata: JsonSerializer.Serialize(metadataObj)
+            );
+
             dbContext.CardAssignments.Add(assignment);
+            dbContext.Events.Add(assignEvent);
+
+            bool assigneeAlreadyHasWatchRecord = await dbContext.CardWatches.AnyAsync(
+                cw => cw.CardId == request.CardId && cw.MemberId == request.AssigneeMemberId,
+                cancellationToken
+            );
+
+            if (!assigneeAlreadyHasWatchRecord)
+                dbContext.CardWatches.Add(
+                    new CardWatch(requester.TeamId, request.CardId, request.AssigneeMemberId)
+                );
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Result.Ok(
@@ -97,65 +117,13 @@ public static class AssignCard
         }
     }
 
-    // ──────────────────────────────────────────────
-    // Unassign
-    // ──────────────────────────────────────────────
-
-    internal sealed record UnassignCardCommand(
-        Guid CardId,
-        Guid BoardId,
-        Guid AssigneeMemberId,
-        Guid RequesterUserId
-    ) : IRequest<Result>;
-
-    internal class UnassignCardHandler(AppDbContext dbContext)
-        : IRequestHandler<UnassignCardCommand, Result>
-    {
-        public async Task<Result> Handle(
-            UnassignCardCommand request,
-            CancellationToken cancellationToken
-        )
-        {
-            // Requester phải là member của board
-            bool isRequesterMember = await dbContext.Members.AnyAsync(
-                m =>
-                    m.UserId == request.RequesterUserId
-                    && dbContext.Boards.Any(b => b.Id == request.BoardId && b.TeamId == m.TeamId),
-                cancellationToken
-            );
-
-            if (!isRequesterMember)
-                return Result.Fail("You are not a member of this board.");
-
-            CardAssignment? assignment = await dbContext.CardAssignments.FirstOrDefaultAsync(
-                a =>
-                    a.CardId == request.CardId
-                    && a.BoardId == request.BoardId
-                    && a.AssigneeMemberId == request.AssigneeMemberId,
-                cancellationToken
-            );
-
-            if (assignment is null)
-                return Result.Fail("Assignment not found.");
-
-            dbContext.CardAssignments.Remove(assignment);
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            return Result.Ok();
-        }
-    }
-
-    // ──────────────────────────────────────────────
-    // Endpoints
-    // ──────────────────────────────────────────────
-
     public class Endpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             // POST: assign a member to a card
             app.MapPost(
-                    "/api/boards/{boardId:guid}/cards/{cardId:guid}/assignments",
+                    "/api/boards/{boardId:guid}/cards/{cardId:guid}/assignments", // TODO include teamId & check team
                     async (
                         Guid boardId,
                         Guid cardId,
@@ -187,36 +155,6 @@ public static class AssignCard
                                 $"/api/boards/{boardId}/cards/{cardId}/assignments",
                                 new SuccessResponse<AssignCardResponse>(result.Value)
                             );
-                    }
-                )
-                .RequireAuthorization();
-
-            // DELETE: unassign a member from a card
-            app.MapDelete(
-                    "/api/boards/{boardId:guid}/cards/{cardId:guid}/assignments/{memberId:guid}",
-                    async (
-                        Guid boardId,
-                        Guid cardId,
-                        Guid memberId,
-                        ClaimsPrincipal user,
-                        ISender sender
-                    ) =>
-                    {
-                        Guid? userId = user.GetUserId();
-                        if (userId is null)
-                            return Results.Unauthorized();
-
-                        UnassignCardCommand command = new(cardId, boardId, memberId, userId.Value);
-
-                        Result result = await sender.Send(command);
-
-                        return result.IsFailed
-                            ? Results.BadRequest(
-                                new FailResponse<IEnumerable<string>>(
-                                    result.Errors.Select(x => x.Message)
-                                )
-                            )
-                            : Results.NoContent();
                     }
                 )
                 .RequireAuthorization();

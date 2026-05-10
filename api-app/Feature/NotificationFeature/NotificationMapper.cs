@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Domain.AppEventMetadata;
 using Domain.Entities;
 using Domain.Enums;
@@ -7,7 +8,8 @@ namespace Feature.NotificationFeature;
 public static class NotificationMapper
 {
     internal sealed record NotificationDto(
-        Guid Id,
+        Guid NotificationId,
+        Guid TeamId,
         string Title, // Event.Card.Title
         string Description, // Event.Type && Event.Metadata
         string ActorName, // Event.CreatorMember
@@ -22,6 +24,7 @@ public static class NotificationMapper
     internal static NotificationDto MapToDto(Notification n) =>
         new(
             n.Id,
+            n.TeamId,
             n.Event.Card.Title ?? "",
             GetNotificationDescription(n),
             n.Event.CreatorMember.Name,

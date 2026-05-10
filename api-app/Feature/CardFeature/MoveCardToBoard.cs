@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -29,74 +30,99 @@ public static class MoveCardToBoard
             CancellationToken cancellationToken
         )
         {
-            var cardInfo = await dbContext
-                .Cards.Where(c => c.Id == request.CardId && c.BoardId == request.CurrentBoardId)
-                .Select(c => new { c.Id, c.TeamId })
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (cardInfo is null)
-                return Result.Fail("Card not found in this board.");
-
-            bool isMember = await dbContext.Members.AnyAsync(
-                m => m.UserId == request.UserId && m.TeamId == cardInfo.TeamId,
+            using var transaction = await dbContext.Database.BeginTransactionAsync(
                 cancellationToken
             );
+            try
+            {
+                var cardInfo = await dbContext
+                    .Cards.Where(c => c.Id == request.CardId && c.BoardId == request.CurrentBoardId)
+                    .Select(c => new { c.Id, c.TeamId })
+                    .FirstOrDefaultAsync(cancellationToken);
 
-            if (!isMember)
-                return Result.Fail("You are not a member of this team.");
+                if (cardInfo is null)
+                    return Result.Fail("Card not found in this board.");
 
-            bool targetBoardExists = await dbContext.Boards.AnyAsync(
-                b => b.Id == request.TargetBoardId && b.TeamId == cardInfo.TeamId,
-                cancellationToken
-            );
-
-            if (!targetBoardExists)
-                return Result.Fail("Target board not found in this team.");
-
-            // Cập nhật BoardId + xóa ColumnId (card.ColumnId là FK trực tiếp)
-            // Dùng ExecuteUpdate để atomic
-            int updated = await dbContext
-                .Cards.Where(c => c.Id == request.CardId)
-                .ExecuteUpdateAsync(
-                    s =>
-                        s.SetProperty(c => c.BoardId, request.TargetBoardId)
-                            .SetProperty(c => c.ColumnId, (Guid?)null),
+                // TODO when we take teamId, we should also move this check up
+                Member? member = await dbContext.Members.FirstOrDefaultAsync(
+                    m => m.UserId == request.UserId && m.TeamId == cardInfo.TeamId,
                     cancellationToken
                 );
 
-            if (updated == 0)
-                return Result.Fail("Failed to move card.");
+                if (member is null)
+                    return Result.Fail("You are not a member of this team.");
 
-            // Xóa trạng thái cũ — CardMaybe/Done/NotNow đều unique trên CardId
-            await dbContext
-                .CardMaybes.Where(cm => cm.CardId == request.CardId)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await dbContext
-                .CardDones.Where(cd => cd.CardId == request.CardId)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await dbContext
-                .CardNotNows.Where(cn => cn.CardId == request.CardId)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            // Cập nhật BoardId trên CardAssignments
-            // (FK CardAssignment.BoardId -> Board, OnDelete NoAction)
-            await dbContext
-                .CardAssignments.Where(a => a.CardId == request.CardId)
-                .ExecuteUpdateAsync(
-                    s => s.SetProperty(a => a.BoardId, request.TargetBoardId),
+                bool targetBoardExists = await dbContext.Boards.AnyAsync(
+                    b => b.Id == request.TargetBoardId && b.TeamId == cardInfo.TeamId,
                     cancellationToken
                 );
 
-            // Tạo CardMaybe cho board mới — landing zone mặc định
-            dbContext.CardMaybes.Add(
-                new CardMaybe { CardId = request.CardId, BoardId = request.TargetBoardId }
-            );
+                if (!targetBoardExists)
+                    return Result.Fail("Target board not found in this team.");
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+                // Cập nhật BoardId + xóa ColumnId (card.ColumnId là FK trực tiếp)
+                // Dùng ExecuteUpdate để atomic
+                int updated = await dbContext
+                    .Cards.Where(c => c.Id == request.CardId)
+                    .ExecuteUpdateAsync(
+                        s =>
+                            s.SetProperty(c => c.BoardId, request.TargetBoardId)
+                                .SetProperty(c => c.ColumnId, (Guid?)null),
+                        cancellationToken
+                    );
 
-            return Result.Ok();
+                if (updated == 0)
+                    return Result.Fail("Failed to move card.");
+
+                // Xóa trạng thái cũ — CardMaybe/Done/NotNow đều unique trên CardId
+                await dbContext
+                    .CardMaybes.Where(cm => cm.CardId == request.CardId)
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                await dbContext
+                    .CardDones.Where(cd => cd.CardId == request.CardId)
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                await dbContext
+                    .CardNotNows.Where(cn => cn.CardId == request.CardId)
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                // Cập nhật BoardId trên CardAssignments
+                // (FK CardAssignment.BoardId -> Board, OnDelete NoAction)
+                // TODO either grant board access or remove assignment for users who do not have access to new board
+                await dbContext
+                    .CardAssignments.Where(a => a.CardId == request.CardId)
+                    .ExecuteUpdateAsync(
+                        s => s.SetProperty(a => a.BoardId, request.TargetBoardId),
+                        cancellationToken
+                    );
+
+                // Tạo CardMaybe cho board mới — landing zone mặc định
+                dbContext.CardMaybes.Add(
+                    new CardMaybe { CardId = request.CardId, BoardId = request.TargetBoardId }
+                );
+
+                Event cardBoardChangeEvent = new(
+                    appEventType: AppEvent.CardBoardChange,
+                    teamId: cardInfo.TeamId,
+                    creatorMemberId: member.Id,
+                    cardId: cardInfo.Id
+                );
+
+                dbContext.Events.Add(cardBoardChangeEvent);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+                return Result.Ok();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return Result.Fail(
+                    new Error($"Failed to move Card to target Board. {ex.Message}").CausedBy(ex)
+                );
+            }
         }
     }
 
@@ -105,7 +131,7 @@ public static class MoveCardToBoard
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPut(
-                    "/api/boards/{boardId:guid}/cards/{cardId:guid}/board",
+                    "/api/boards/{boardId:guid}/cards/{cardId:guid}/board", // TODO should include teamId
                     async (
                         Guid boardId,
                         Guid cardId,

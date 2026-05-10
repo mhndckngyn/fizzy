@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -8,18 +9,23 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.BoardFeatures;
+namespace Feature.BoardFeature;
 
 public static class UpdateBoard
 {
-    internal sealed record UpdateBoardRequest(string Name, bool AllAccess = false);
+    internal sealed record UpdateBoardRequest(
+        string Name,
+        bool AllAccess = false,
+        List<Guid>? RetainedMemberIds = null
+    );
 
     internal sealed record UpdateBoardCommand(
         Guid BoardId,
         Guid TeamId,
         Guid UserId,
         string Name,
-        bool AllAccess
+        bool AllAccess,
+        List<Guid>? RetainedMemberIds
     ) : IRequest<Result<UpdateBoardResponse>>;
 
     internal sealed record UpdateBoardResponse(Guid BoardId, string Name, bool AllAccess);
@@ -40,6 +46,9 @@ public static class UpdateBoard
             if (member is null)
                 return Result.Fail("You are not a member of this team.");
 
+            if (member.Role is not (TeamRole.Owner or TeamRole.Administrator))
+                return Result.Fail("Only Owners and Administrators can update board settings.");
+
             var board = await dbContext.Boards.FirstOrDefaultAsync(
                 b => b.Id == request.BoardId && b.TeamId == request.TeamId,
                 cancellationToken
@@ -48,10 +57,90 @@ public static class UpdateBoard
             if (board is null)
                 return Result.Fail("Board not found.");
 
-            board.Name = request.Name;
-            board.AllAccess = request.AllAccess;
+            bool turningOnAllAccess = request.AllAccess && !board.AllAccess;
+            bool turningOffAllAccess = !request.AllAccess && board.AllAccess;
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(
+                cancellationToken
+            );
+
+            try
+            {
+                board.Name = request.Name;
+                board.AllAccess = request.AllAccess;
+
+                if (turningOnAllAccess)
+                {
+                    var existingMemberIds = await dbContext
+                        .BoardAccesses.Where(ba => ba.BoardId == request.BoardId)
+                        .Select(ba => ba.MemberId)
+                        .ToListAsync(cancellationToken);
+
+                    var newAccesses = await dbContext
+                        .Members.Where(m =>
+                            m.TeamId == request.TeamId && !existingMemberIds.Contains(m.Id)
+                        )
+                        .Select(m => m.Id)
+                        .ToListAsync(cancellationToken);
+
+                    foreach (Guid memberId in newAccesses)
+                        dbContext.BoardAccesses.Add(
+                            new BoardAccess(request.TeamId, request.BoardId, memberId)
+                        );
+                }
+                else if (turningOffAllAccess)
+                {
+                    HashSet<Guid> retainedMemberIds = (request.RetainedMemberIds ?? [])
+                        .Append(member.Id) // automatically add the current member so they don't lock themselves out
+                        .ToHashSet();
+
+                    var removedMemberIds = await dbContext
+                        .BoardAccesses.Where(ba =>
+                            ba.BoardId == request.BoardId
+                            && !retainedMemberIds.Contains(ba.MemberId)
+                        )
+                        .Select(ba => ba.MemberId)
+                        .ToListAsync(cancellationToken);
+
+                    if (removedMemberIds.Count > 0)
+                    {
+                        var cardIdsOnBoard = await dbContext
+                            .Cards.Where(c => c.BoardId == request.BoardId)
+                            .Select(c => c.Id)
+                            .ToListAsync(cancellationToken);
+
+                        await dbContext
+                            .Notifications.Where(n =>
+                                cardIdsOnBoard.Contains(n.CardId)
+                                && removedMemberIds.Contains(n.RecipientMemberId)
+                                && n.ReadAt == null
+                            )
+                            .ExecuteDeleteAsync(cancellationToken);
+
+                        await dbContext
+                            .CardWatches.Where(cw =>
+                                cardIdsOnBoard.Contains(cw.CardId)
+                                && removedMemberIds.Contains(cw.MemberId)
+                            )
+                            .ExecuteDeleteAsync(cancellationToken);
+
+                        await dbContext
+                            .BoardAccesses.Where(ba =>
+                                ba.BoardId == request.BoardId
+                                && removedMemberIds.Contains(ba.MemberId)
+                            )
+                            .ExecuteDeleteAsync(cancellationToken);
+                    }
+                }
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
 
             return Result.Ok(new UpdateBoardResponse(board.Id, board.Name, board.AllAccess));
         }
@@ -80,7 +169,8 @@ public static class UpdateBoard
                             teamId,
                             userId.Value,
                             request.Name,
-                            request.AllAccess
+                            request.AllAccess,
+                            request.RetainedMemberIds
                         );
 
                         Result<UpdateBoardResponse> result = await sender.Send(command);
