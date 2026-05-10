@@ -1,17 +1,23 @@
+using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class MoveCardToDone
 {
-    internal sealed record MoveCardToDoneCommand(Guid TeamId, Guid BoardId, Guid CardId)
-        : IRequest<Result>;
+    internal sealed record MoveCardToDoneCommand(
+        Guid TeamId,
+        Guid BoardId,
+        Guid CardId,
+        Guid RequesterUserId
+    ) : IRequest<Result>;
 
     internal class MoveCardToDoneHandler(AppDbContext dbContext)
         : IRequestHandler<MoveCardToDoneCommand, Result>
@@ -27,6 +33,14 @@ public static class MoveCardToDone
             );
             try
             {
+                Member? requester = await dbContext.Members.FirstOrDefaultAsync(
+                    m => m.UserId == request.RequesterUserId && m.TeamId == request.TeamId,
+                    cancellationToken
+                );
+
+                if (requester is null)
+                    return Result.Fail("You are not a member of this Team.");
+
                 // Load Board
                 bool isValidBoard = await dbContext.Boards.AnyAsync(
                     b => b.Id == request.BoardId && b.TeamId == request.TeamId,
@@ -72,7 +86,23 @@ public static class MoveCardToDone
                     .CardDones.Where(c => c.CardId == request.CardId)
                     .ExecuteDeleteAsync(cancellationToken);
 
-                dbContext.CardDones.Add(new CardDone { CardId = card.Id, BoardId = card.BoardId });
+                dbContext.CardDones.Add(
+                    new CardDone
+                    {
+                        CardId = card.Id,
+                        BoardId = card.BoardId,
+                        ClosedByMemberId = requester.Id,
+                    }
+                );
+
+                Event doneEvent = new(
+                    appEventType: AppEvent.CardDone,
+                    teamId: request.TeamId,
+                    creatorMemberId: requester.Id,
+                    cardId: card.Id
+                );
+
+                dbContext.Events.Add(doneEvent);
 
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -97,9 +127,19 @@ public static class MoveCardToDone
         {
             app.MapPut(
                 "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards/{cardId:guid}/done",
-                async (Guid teamId, Guid boardId, Guid cardId, IMediator mediator) =>
+                async (
+                    ClaimsPrincipal user,
+                    Guid teamId,
+                    Guid boardId,
+                    Guid cardId,
+                    IMediator mediator
+                ) =>
                 {
-                    var command = new MoveCardToDoneCommand(teamId, boardId, cardId);
+                    Guid? userId = user.GetUserId();
+                    if (userId is null)
+                        return Results.Unauthorized();
+
+                    var command = new MoveCardToDoneCommand(teamId, boardId, cardId, userId.Value);
                     var result = await mediator.Send(command);
                     return result.ToNoContentMinimalApiResult();
                 }

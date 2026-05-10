@@ -36,6 +36,7 @@ public static class JoinTeam
             // Tìm team dựa trên InvitationCode
             var team = await dbContext
                 .Teams.Where(t => t.InvitationCode == request.InvitationCode)
+                .Include(t => t.Boards)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (team is null)
@@ -73,6 +74,14 @@ public static class JoinTeam
             };
 
             dbContext.Members.Add(newMember);
+
+            // grant access to all current public boards
+            IEnumerable<BoardAccess> publicBoardAccesses = team
+                .Boards.Where(board => board.AllAccess)
+                .Select(board => new BoardAccess(team.Id, board.Id, newMember.Id));
+
+            dbContext.BoardAccesses.AddRange(publicBoardAccesses);
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Result.Ok(new JoinTeamResponse(team.Id, newMember.Id, newMember.Name));

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -51,7 +52,23 @@ public static class CreateComment
                 Body = request.Body.Trim(),
             };
 
-            dbContext.Comments.Add(comment);
+            Event commentCreateEvent = new(
+                appEventType: AppEvent.CommentCreate,
+                teamId: request.TeamId,
+                creatorMemberId: member.Id,
+                cardId: request.CardId
+            );
+
+            dbContext.AddRange(comment, commentCreateEvent);
+
+            bool alreadyHasWatchRecord = await dbContext.CardWatches.AnyAsync(
+                cw => cw.CardId == request.CardId && cw.MemberId == member.Id,
+                cancellationToken
+            );
+
+            if (!alreadyHasWatchRecord)
+                dbContext.CardWatches.Add(new CardWatch(request.TeamId, request.CardId, member.Id));
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Result.Ok(

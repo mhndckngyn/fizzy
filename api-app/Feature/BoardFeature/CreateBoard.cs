@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -8,7 +9,7 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.BoardFeatures;
+namespace Feature.BoardFeature;
 
 public static class CreateBoard
 {
@@ -44,6 +45,25 @@ public static class CreateBoard
             };
 
             dbContext.Boards.Add(board);
+
+            List<Guid> memberIds = await dbContext
+                .Members.Where(m => m.TeamId == request.TeamId)
+                .Select(m => m.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (Guid memberId in memberIds)
+            {
+                dbContext.BoardAccesses.Add(
+                    new BoardAccess(request.TeamId, board.Id, memberId)
+                    {
+                        BoardInvolvement =
+                            memberId == member.Id
+                                ? BoardInvolvement.Watching
+                                : BoardInvolvement.AccessOnly,
+                    }
+                );
+            }
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Result.Ok(new CreateBoardResponse(board.Id, board.Name));

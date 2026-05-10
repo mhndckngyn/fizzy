@@ -1,17 +1,23 @@
+using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class MoveCardToMaybe
 {
-    internal sealed record MoveCardToMaybeCommand(Guid TeamId, Guid BoardId, Guid CardId)
-        : IRequest<Result>;
+    internal sealed record MoveCardToMaybeCommand(
+        Guid TeamId,
+        Guid BoardId,
+        Guid CardId,
+        Guid RequesterUserId
+    ) : IRequest<Result>;
 
     internal class MoveCardToMaybeHandler(AppDbContext dbContext)
         : IRequestHandler<MoveCardToMaybeCommand, Result>
@@ -27,6 +33,14 @@ public static class MoveCardToMaybe
             );
             try
             {
+                Member? requester = await dbContext.Members.FirstOrDefaultAsync(
+                    m => m.UserId == request.RequesterUserId && m.TeamId == request.TeamId, // TODO add board access check (+ for similar requests)
+                    cancellationToken
+                );
+
+                if (requester is null)
+                    return Result.Fail("You are not a member of this Team.");
+
                 // Load Board
                 bool isValidBoard = await dbContext.Boards.AnyAsync(
                     b => b.Id == request.BoardId && b.TeamId == request.TeamId,
@@ -61,6 +75,15 @@ public static class MoveCardToMaybe
                         new Error(domainResult.Errors.First().Message).WithMetadata("HttpCode", 400)
                     );
                 }
+
+                Event moveToMaybeEvent = new(
+                    appEventType: AppEvent.CardToMaybe,
+                    teamId: request.TeamId,
+                    creatorMemberId: requester.Id,
+                    cardId: card.Id
+                );
+
+                dbContext.Events.Add(moveToMaybeEvent);
 
                 await dbContext
                     .CardNotNows.Where(c => c.CardId == request.CardId)
@@ -99,9 +122,19 @@ public static class MoveCardToMaybe
         {
             app.MapPut(
                 "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards/{cardId:guid}/maybe",
-                async (Guid teamId, Guid boardId, Guid cardId, IMediator mediator) =>
+                async (
+                    ClaimsPrincipal user,
+                    Guid teamId,
+                    Guid boardId,
+                    Guid cardId,
+                    IMediator mediator
+                ) =>
                 {
-                    var command = new MoveCardToMaybeCommand(teamId, boardId, cardId);
+                    Guid? userId = user.GetUserId();
+                    if (userId is null)
+                        return Results.Unauthorized(); // TODO are we supposed to use FluentResult here
+
+                    var command = new MoveCardToMaybeCommand(teamId, boardId, cardId, userId.Value);
                     var result = await mediator.Send(command);
                     return result.ToNoContentMinimalApiResult();
                 }

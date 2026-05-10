@@ -1,17 +1,23 @@
+using System.Security.Claims;
 using Carter;
 using Domain.Entities;
+using Domain.Enums;
 using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class MoveCardToNotNow
 {
-    internal sealed record MoveCardToNotNowCommand(Guid TeamId, Guid BoardId, Guid CardId)
-        : IRequest<Result>;
+    internal sealed record MoveCardToNotNowCommand(
+        Guid TeamId,
+        Guid BoardId,
+        Guid CardId,
+        Guid UserId
+    ) : IRequest<Result>;
 
     internal class MoveCardToNotNowHandler(AppDbContext dbContext)
         : IRequestHandler<MoveCardToNotNowCommand, Result>
@@ -27,6 +33,19 @@ public static class MoveCardToNotNow
             );
             try
             {
+                Member? member = await dbContext.Members.FirstOrDefaultAsync(
+                    m => m.UserId == request.UserId && m.TeamId == request.TeamId,
+                    cancellationToken
+                );
+
+                if (member is null)
+                    return Result.Fail(
+                        new Error("You are not a member of this team.").WithMetadata(
+                            "HttpCode",
+                            403
+                        )
+                    );
+
                 // Load Board
                 bool isValidBoard = await dbContext.Boards.AnyAsync(
                     b => b.Id == request.BoardId && b.TeamId == request.TeamId,
@@ -76,6 +95,15 @@ public static class MoveCardToNotNow
                     new CardNotNow { CardId = card.Id, BoardId = card.BoardId }
                 );
 
+                dbContext.Events.Add(
+                    new Event(
+                        appEventType: AppEvent.CardPostponed,
+                        teamId: request.TeamId,
+                        creatorMemberId: member.Id,
+                        cardId: card.Id
+                    )
+                );
+
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
@@ -98,14 +126,30 @@ public static class MoveCardToNotNow
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPut(
-                "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards/{cardId:guid}/not-now",
-                async (Guid teamId, Guid boardId, Guid cardId, IMediator mediator) =>
-                {
-                    var command = new MoveCardToNotNowCommand(teamId, boardId, cardId);
-                    var result = await mediator.Send(command);
-                    return result.ToNoContentMinimalApiResult();
-                }
-            );
+                    "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards/{cardId:guid}/not-now",
+                    async (
+                        ClaimsPrincipal user,
+                        Guid teamId,
+                        Guid boardId,
+                        Guid cardId,
+                        IMediator mediator
+                    ) =>
+                    {
+                        Guid? userId = user.GetUserId();
+                        if (userId is null)
+                            return Results.Unauthorized();
+
+                        var command = new MoveCardToNotNowCommand(
+                            teamId,
+                            boardId,
+                            cardId,
+                            userId.Value
+                        );
+                        var result = await mediator.Send(command);
+                        return result.ToNoContentMinimalApiResult();
+                    }
+                )
+                .RequireAuthorization();
         }
     }
 }
