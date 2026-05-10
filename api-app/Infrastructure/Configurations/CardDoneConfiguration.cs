@@ -24,6 +24,13 @@ public class CardDoneConfiguration : IEntityTypeConfiguration<CardDone>
             .HasForeignKey(c => c.BoardId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        builder
+            .HasOne(c => c.ClosedByMember)
+            .WithMany()
+            .HasForeignKey(c => c.ClosedByMemberId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(c => c.CardId).IsUnique();
         builder.HasIndex(c => c.BoardId);
     }
