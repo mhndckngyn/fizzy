@@ -1,5 +1,9 @@
 export const queryKeys = {
+  // TODO every key should include "sessions" (as used in use-session)
+
   teams: () => ["teams", "list"] as const,
+
+  teamNotifications: (teamId: string) => ["notifications", teamId],
 
   boards: (teamId: string) => ["teams", teamId, "boards", "list"] as const,
 

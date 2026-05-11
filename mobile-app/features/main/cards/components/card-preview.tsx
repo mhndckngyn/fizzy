@@ -79,7 +79,7 @@ export default function CardPreview({
       </XStack>
 
       {/* Card Content */}
-      <YStack padding="$2.5" gap="$2">
+      <YStack padding="$2.5" paddingTop="$2" gap="$2">
         {/* Main Title */}
         <Text
           color="$color9"
