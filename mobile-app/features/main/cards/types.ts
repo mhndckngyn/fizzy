@@ -31,6 +31,7 @@ export interface CardDetail {
   createdAt: string;
   updatedAt: string | null;
   assignments: CardAssignee[];
+  isWatching: boolean;
 }
 
 export type CardMention = Pick<Card, "cardId" | "no" | "title">;
