@@ -29,7 +29,16 @@ import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
 import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { useMembers } from "@/features/main/members/use-members";
 import { useTogglePin, usePinnedCards } from "@/features/main/pins/use-pins";
-import { ArrowLeft, Save, X, Pin } from "@tamagui/lucide-icons-2";
+import { useSetCardWatch } from "@/features/main/cards/use-set-card-watch";
+import {
+  ArrowLeft,
+  Bell,
+  BellOff,
+  Pin,
+  PinOff,
+  Save,
+  X,
+} from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
@@ -85,9 +94,12 @@ export default function CardDetailPage() {
   const [isDirty, setIsDirty] = useState(false);
 
   const { data: pinnedCards } = usePinnedCards();
-  const { mutate: togglePin, isPending: isPinning } = useTogglePin();
+  const { mutate: togglePin, isPending: isPendingPinning } = useTogglePin();
+  const { mutate: setCardWatch, isPending: isPendingWatching } =
+    useSetCardWatch(cardId);
 
   const isPinned = pinnedCards?.some((p) => p.cardId === cardId) ?? false;
+  const isWatchingCard = cardData?.isWatching ?? false;
 
   useEffect(() => {
     if (!cardData) return;
@@ -287,55 +299,6 @@ export default function CardDetailPage() {
 
                 {/* Spacer */}
                 <View flex={1} />
-
-                {/* Pin button — top right of card header */}
-                <XStack
-                  ai="center"
-                  gap="$1.5"
-                  paddingHorizontal="$2.5"
-                  paddingVertical="$1.5"
-                  onPress={() => togglePin(cardId)}
-                  disabled={isPinning}
-                  pressStyle={{ opacity: 0.7 }}
-                >
-                  {isPinning ? (
-                    <Spinner
-                      size="small"
-                      color={isPinned ? "$yellow10" : "$gray9"}
-                    />
-                  ) : (
-                    <XStack
-                      ai="center"
-                      gap="$1.5"
-                      borderRadius="$2"
-                      borderWidth={0.5}
-                      paddingHorizontal="$2"
-                      paddingVertical="$1"
-                      backgroundColor={
-                        isPinned
-                          ? "rgba(240,193,48,0.12)"
-                          : "rgba(255,255,255,0.05)"
-                      }
-                      borderColor={
-                        isPinned
-                          ? "rgba(240,193,48,0.35)"
-                          : "rgba(255,255,255,0.1)"
-                      }
-                    >
-                      <Pin
-                        size={12}
-                        color={isPinned ? "$yellow10" : "$gray9"}
-                      />
-                      <Text
-                        fontSize={10}
-                        fontWeight="600"
-                        color={isPinned ? "$yellow10" : "$gray9"}
-                      >
-                        {isPinned ? "Pinned" : "Pin"}
-                      </Text>
-                    </XStack>
-                  )}
-                </XStack>
               </XStack>
 
               {/* VIEW MODE */}
@@ -347,6 +310,9 @@ export default function CardDetailPage() {
                     htmlContent={description}
                     activeColor={columnColor}
                     onEditPress={() => setEditing(true)}
+                    createdAt={cardData.createdAt}
+                    creatorName={cardData.creatorName}
+                    updatedAt={cardData.updatedAt}
                   />
                 )}
                 {/* EDIT MODE */}
@@ -379,25 +345,11 @@ export default function CardDetailPage() {
                     />
                   </YStack>
                   {/* Action Buttons */}
-                  <XStack mt="$4" gap="$3">
+                  <XStack mt="$4" gap="$3" jc="center">
                     <Button
-                      flex={1}
-                      size="$4"
-                      backgroundColor="$gray5"
-                      br="$5"
-                      onPress={handleCancelEdit}
-                      disabled={isUpdating}
-                      icon={<X size={16} color="$gray11" />}
-                    >
-                      <Button.Text color="$gray11" fontWeight="bold">
-                        Cancel
-                      </Button.Text>
-                    </Button>
-                    <Button
-                      flex={1}
-                      size="$4"
+                      size="$3"
                       backgroundColor="$blue9"
-                      br="$5"
+                      br="$8"
                       onPress={handleSave}
                       disabled={isUpdating || !isDirty}
                       opacity={isUpdating || !isDirty ? 0.5 : 1}
@@ -413,6 +365,15 @@ export default function CardDetailPage() {
                         {isUpdating ? "Saving..." : "Save Changes"}
                       </Button.Text>
                     </Button>
+                    <Button
+                      flex={1}
+                      size="$3"
+                      backgroundColor="$gray4"
+                      circular
+                      onPress={handleCancelEdit}
+                      disabled={isUpdating}
+                      icon={<X size={18} color="$gray11" />}
+                    />
                   </XStack>
                 </YStack>
               </View>
@@ -475,7 +436,38 @@ export default function CardDetailPage() {
               />
             </Card>
 
-            <Separator marginBlock="$2" borderColor="$gray7" opacity={0.5} />
+            {/* ACTION BUTTONS */}
+            <XStack jc="center" gap="$4">
+              <XStack
+                p="$2"
+                borderRadius="$3"
+                onPress={() => setCardWatch(!isWatchingCard)}
+                disabled={isPendingWatching}
+                pressStyle={{ opacity: 0.6 }}
+                opacity={isPendingWatching ? 0.5 : 1}
+              >
+                {isWatchingCard ? (
+                  <BellOff size={22} color="#586e8c" />
+                ) : (
+                  <Bell size={22} color="$gray8" />
+                )}
+              </XStack>
+
+              <XStack
+                p="$2"
+                borderRadius="$3"
+                onPress={() => togglePin(cardId)}
+                disabled={isPendingPinning}
+                pressStyle={{ opacity: 0.6 }}
+                opacity={isPendingPinning ? 0.5 : 1}
+              >
+                {isPinned ? (
+                  <PinOff size={22} color="#586e8c" />
+                ) : (
+                  <Pin size={22} color="$gray8" />
+                )}
+              </XStack>
+            </XStack>
 
             {cardData && (
               <YStack pb="$5">

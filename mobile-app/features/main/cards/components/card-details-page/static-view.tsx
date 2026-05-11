@@ -1,4 +1,5 @@
 import { Edit3 } from "@tamagui/lucide-icons-2";
+import { formatDistanceToNow } from "date-fns";
 import { Link } from "expo-router";
 import RenderHtml, { CustomTextualRenderer } from "react-native-render-html";
 import { Button, Text, useWindowDimensions, View, XStack } from "tamagui";
@@ -9,7 +10,14 @@ type Props = {
   teamId: string;
   activeColor: string;
   onEditPress: () => void;
+  createdAt: string;
+  creatorName: string;
+  updatedAt: string | null;
 };
+
+function formatMeta(dateStr: string) {
+  return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+}
 
 const CardStaticView = ({
   title,
@@ -17,6 +25,9 @@ const CardStaticView = ({
   teamId,
   activeColor,
   onEditPress,
+  createdAt,
+  creatorName,
+  updatedAt,
 }: Props) => {
   const { width } = useWindowDimensions();
 
@@ -68,7 +79,7 @@ const CardStaticView = ({
 
   return (
     <View>
-      <XStack justifyContent="space-between" alignItems="center" mb="$3">
+      <XStack justifyContent="space-between" alignItems="center" mb="$1.5">
         <Text fontSize="$8" fontWeight="bold" flex={1} mr="$2">
           {title}
         </Text>
@@ -106,6 +117,21 @@ const CardStaticView = ({
           ol: { paddingLeft: 20 },
         }}
       />
+
+      <View mt="$4" gap="$1" opacity={0.5}>
+        <Text fontSize="$2" color="$gray10">
+          {"ADDED "}
+          <Text fontWeight="600">{formatMeta(createdAt).toUpperCase()}</Text>
+          {" BY "}
+          <Text fontWeight="600">{creatorName.toUpperCase()}</Text>
+        </Text>
+        {updatedAt && (
+          <Text fontSize="$2" color="$gray10">
+            {"UPDATED "}
+            <Text fontWeight="600">{formatMeta(updatedAt).toUpperCase()}</Text>
+          </Text>
+        )}
+      </View>
     </View>
   );
 };

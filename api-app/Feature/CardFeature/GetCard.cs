@@ -29,7 +29,8 @@ public static class GetCard
         string CreatorName,
         DateTime CreatedAt,
         DateTime? UpdatedAt,
-        List<GetCardAssignee> Assignments
+        List<GetCardAssignee> Assignments,
+        bool IsWatching
     );
 
     // Handler không cần ISender — query CardContents trực tiếp
@@ -41,12 +42,12 @@ public static class GetCard
             CancellationToken cancellationToken
         )
         {
-            bool isMember = await dbContext.Members.AnyAsync(
-                m => m.UserId == request.UserId && m.TeamId == request.TeamId,
-                cancellationToken
-            );
+            Guid? memberId = await dbContext
+                .Members.Where(m => m.UserId == request.UserId && m.TeamId == request.TeamId)
+                .Select(m => (Guid?)m.Id)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (!isMember)
+            if (memberId is null)
                 return Result.Fail("You are not a member of this team.");
 
             var card = await dbContext
@@ -89,6 +90,9 @@ public static class GetCard
                             (a, m) => new GetCardAssignee(m.Id, m.Name)
                         )
                         .ToList(),
+                    IsWatching = dbContext.CardWatches.Any(cw =>
+                        cw.CardId == c.Id && cw.MemberId == memberId && cw.Watching
+                    ),
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -109,7 +113,8 @@ public static class GetCard
                     card.CreatorName ?? string.Empty,
                     card.CreatedAt,
                     card.UpdatedAt,
-                    card.Assignments
+                    card.Assignments,
+                    card.IsWatching
                 )
             );
         }
