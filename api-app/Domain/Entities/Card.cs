@@ -29,6 +29,7 @@ public class Card : BaseEntity
     public ICollection<CardAssignment> Assignments { get; set; } = [];
 
     public ICollection<CardWatch> CardWatches { get; set; } = [];
+    public ICollection<CardTag> CardTags { get; set; } = [];
 
     /// <summary>
     /// Chuyển Card về một Column cụ thể
