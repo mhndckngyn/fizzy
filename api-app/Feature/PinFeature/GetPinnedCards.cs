@@ -51,10 +51,13 @@ public static class GetPinnedCards
                     p.Card.BoardId,
                     p.Card.Board.Name,
                     p.Card.ColumnId != null
-                        ? dbContext
-                            .Columns.Where(c => c.Id == p.Card.ColumnId)
-                            .Select(c => c.Name)
-                            .FirstOrDefault()
+                            ? dbContext
+                                .Columns.Where(c => c.Id == p.Card.ColumnId)
+                                .Select(c => c.Name)
+                                .FirstOrDefault()
+                        : p.Card.Done != null ? "Done"
+                        : p.Card.Maybe != null ? "May be"
+                        : p.Card.NotNow != null ? "Not Now"
                         : null,
                     p.Card.ColumnId != null
                         ? dbContext
