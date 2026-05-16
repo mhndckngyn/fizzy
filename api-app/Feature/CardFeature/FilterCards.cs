@@ -11,8 +11,6 @@ namespace Feature.CardFeature;
 
 public static class FilterCards
 {
-    // ── DTOs ─────────────────────────────────────────────────────────────────
-
     public sealed record AssigneeDto(Guid MemberId, string Name);
 
     public sealed record TagDto(Guid TagId, string Title, string Color);
@@ -21,10 +19,12 @@ public static class FilterCards
         Guid CardId,
         int No,
         string? Title,
-        string Status, // "open" | "done" | "not-now" | "maybe"
+        string Status,
         string? ColumnId,
         string? ColumnName,
         string? ColumnColor,
+        Guid BoardId,
+        string BoardName,
         List<AssigneeDto> Assignees,
         List<TagDto> Tags,
         DateTime CreatedAt,
@@ -35,15 +35,13 @@ public static class FilterCards
 
     public sealed record Response(List<CardSummaryDto> Cards, int Total, int Page, int PageSize);
 
-    // ── Query ─────────────────────────────────────────────────────────────────
-
     internal sealed record Query(
         Guid TeamId,
-        Guid BoardId,
+        Guid? BoardId,
         Guid UserId,
         string? Search,
-        List<string>? Statuses, // "open" | "done" | "not-now" | "maybe"
-        string SortBy, // "recently-updated" | "newest" | "oldest"
+        List<string>? Statuses,
+        string SortBy,
         List<Guid>? AssignedToIds,
         List<Guid>? AddedByIds,
         List<Guid>? ClosedByIds,
@@ -51,8 +49,6 @@ public static class FilterCards
         int Page,
         int PageSize
     ) : IRequest<Result<Response>>;
-
-    // ── Handler ───────────────────────────────────────────────────────────────
 
     internal sealed class Handler(AppDbContext db) : IRequestHandler<Query, Result<Response>>
     {
@@ -66,11 +62,31 @@ public static class FilterCards
             if (!isMember)
                 return Result.Fail("You are not a member of this team.");
 
+            Guid memberId = await db
+                .Members.Where(m => m.UserId == req.UserId && m.TeamId == req.TeamId)
+                .Select(m => m.Id)
+                .FirstAsync(ct);
+
+            var accessibleBoardIds = await db
+                .Boards.Where(b =>
+                    b.TeamId == req.TeamId
+                    && (b.AllAccess || b.BoardAccesses.Any(ba => ba.MemberId == memberId))
+                )
+                .Select(b => b.Id)
+                .ToListAsync(ct);
+
             var query = db
-                .Cards.Where(c => c.BoardId == req.BoardId && c.TeamId == req.TeamId)
+                .Cards.Where(c => c.TeamId == req.TeamId && accessibleBoardIds.Contains(c.BoardId))
                 .AsQueryable();
 
-            // ── Text search ───────────────────────────────────────────────────
+            if (req.BoardId.HasValue)
+            {
+                if (!accessibleBoardIds.Contains(req.BoardId.Value))
+                    return Result.Fail("You do not have access to this board.");
+
+                query = query.Where(c => c.BoardId == req.BoardId.Value);
+            }
+
             if (!string.IsNullOrWhiteSpace(req.Search))
             {
                 string term = req.Search.ToLower();
@@ -84,7 +100,6 @@ public static class FilterCards
                 );
             }
 
-            // ── Status filter ─────────────────────────────────────────────────
             if (req.Statuses is { Count: > 0 })
             {
                 bool wantOpen = req.Statuses.Contains("open");
@@ -100,37 +115,24 @@ public static class FilterCards
                 );
             }
 
-            // ── Assigned-to filter ────────────────────────────────────────────
             if (req.AssignedToIds is { Count: > 0 })
-            {
                 query = query.Where(c =>
                     c.Assignments.Any(a => req.AssignedToIds.Contains(a.AssigneeMemberId))
                 );
-            }
 
-            // ── Added-by filter ───────────────────────────────────────────────
             if (req.AddedByIds is { Count: > 0 })
-            {
                 query = query.Where(c => req.AddedByIds.Contains(c.CreatorMemberId));
-            }
 
-            // ── Closed-by filter ──────────────────────────────────────────────
             if (req.ClosedByIds is { Count: > 0 })
-            {
                 query = query.Where(c =>
                     c.Done != null
                     && c.Done.ClosedByMemberId != null
                     && req.ClosedByIds.Contains(c.Done.ClosedByMemberId.Value)
                 );
-            }
 
-            // ── Tag filter ────────────────────────────────────────────────────
             if (req.TagIds is { Count: > 0 })
-            {
                 query = query.Where(c => c.CardTags.Any(ct => req.TagIds.Contains(ct.TagId)));
-            }
 
-            // ── Sorting ───────────────────────────────────────────────────────
             query = req.SortBy switch
             {
                 "newest" => query.OrderByDescending(c => c.CreatedAt),
@@ -138,7 +140,6 @@ public static class FilterCards
                 _ => query.OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt),
             };
 
-            // ── Count + paginate ──────────────────────────────────────────────
             int total = await query.CountAsync(ct);
 
             var raw = await query
@@ -153,6 +154,8 @@ public static class FilterCards
                     IsNotNow = c.NotNow != null,
                     IsMaybe = c.Maybe != null,
                     c.ColumnId,
+                    c.BoardId,
+                    BoardName = c.Board.Name,
                     c.CreatedAt,
                     c.UpdatedAt,
                     CreatorName = c.Creator.Name,
@@ -169,7 +172,6 @@ public static class FilterCards
                 })
                 .ToListAsync(ct);
 
-            // ── Resolve column name + color ───────────────────────────────────
             List<Guid> columnIds = raw.Where(r => r.ColumnId.HasValue)
                 .Select(r => r.ColumnId!.Value)
                 .Distinct()
@@ -212,6 +214,8 @@ public static class FilterCards
                         ColumnId: r.ColumnId?.ToString(),
                         ColumnName: colName,
                         ColumnColor: colColor,
+                        BoardId: r.BoardId,
+                        BoardName: r.BoardName,
                         Assignees: r.Assignees,
                         Tags: r.Tags,
                         CreatedAt: r.CreatedAt,
@@ -226,19 +230,17 @@ public static class FilterCards
         }
     }
 
-    // ── Endpoint ──────────────────────────────────────────────────────────────
-
     public class Endpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapGet(
-                    "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards",
+                    "/api/teams/{teamId:guid}/cards/filter",
                     async (
                         Guid teamId,
-                        Guid boardId,
                         ClaimsPrincipal user,
                         ISender sender,
+                        string? boardId = null,
                         string? search = null,
                         string? statuses = null,
                         string? sortBy = "recently-updated",
@@ -254,9 +256,11 @@ public static class FilterCards
                         if (userId is null)
                             return Results.Unauthorized();
 
+                        Guid? parsedBoardId = Guid.TryParse(boardId, out var bid) ? bid : null;
+
                         Query query = new(
                             TeamId: teamId,
-                            BoardId: boardId,
+                            BoardId: parsedBoardId,
                             UserId: userId.Value,
                             Search: search,
                             Statuses: ParseStrings(statuses),
