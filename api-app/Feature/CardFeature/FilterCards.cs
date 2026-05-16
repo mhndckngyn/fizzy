@@ -206,6 +206,15 @@ public static class FilterCards
                         colColor = col.Color;
                     }
 
+                    if (colName is null)
+                    {
+                        colName =
+                            r.IsDone ? "Done"
+                            : r.IsNotNow ? "Not Now"
+                            : r.IsMaybe ? "May be"
+                            : null;
+                    }
+
                     return new CardSummaryDto(
                         CardId: r.Id,
                         No: r.No,
