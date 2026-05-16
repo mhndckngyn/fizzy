@@ -20,4 +20,17 @@ public class Member : BaseEntity
     public Team Team { get; set; } = null!;
 
     public ICollection<Event> Events { get; set; } = [];
+
+    public bool CanManage(Guid targetMemberId, TeamRole targerMemberRole)
+    {
+        if (Id == targetMemberId)
+            return false;
+
+        return Role switch
+        {
+            TeamRole.Owner => true,
+            TeamRole.Administrator => targerMemberRole != TeamRole.Owner,
+            _ => false,
+        };
+    }
 }
