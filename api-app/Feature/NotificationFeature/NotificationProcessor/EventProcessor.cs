@@ -70,7 +70,10 @@ public class EventProcessor(
             notification.Event = evnt;
             notification.RecipientMember = member;
 
-            notificationsToBroadcast.Add((notification, member.UserId));
+            if (member.UserId is not null)
+            {
+                notificationsToBroadcast.Add((notification, member.UserId.Value));
+            }
         }
 
         // 3. Save everything in a single transaction

@@ -5,7 +5,7 @@ namespace Domain.Entities;
 
 public class Member : BaseEntity
 {
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
 
     public Guid TeamId { get; set; }
 
@@ -13,7 +13,9 @@ public class Member : BaseEntity
 
     public TeamRole Role { get; set; } = TeamRole.Member;
 
-    public User User { get; set; } = null!;
+    public DateTime? RemovedAt { get; set; }
+
+    public User? User { get; set; }
 
     public Team Team { get; set; } = null!;
 

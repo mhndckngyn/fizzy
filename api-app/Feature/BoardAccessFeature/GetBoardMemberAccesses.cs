@@ -58,11 +58,11 @@ public static class GetBoardMemberAccesses
                 .ToHashSetAsync(cancellationToken);
 
             var members = await dbContext
-                .Members.Where(m => m.TeamId == request.TeamId)
+                .Members.Where(m => m.TeamId == request.TeamId && m.RemovedAt == null)
                 .Select(m => new MemberAccessEntry(
                     m.Id,
                     m.Name,
-                    m.User.EmailAddress,
+                    m.User!.EmailAddress,
                     accessedMemberIds.Contains(m.Id)
                 ))
                 .ToListAsync(cancellationToken);

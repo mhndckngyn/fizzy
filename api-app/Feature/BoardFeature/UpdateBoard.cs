@@ -79,7 +79,9 @@ public static class UpdateBoard
 
                     var newAccesses = await dbContext
                         .Members.Where(m =>
-                            m.TeamId == request.TeamId && !existingMemberIds.Contains(m.Id)
+                            m.TeamId == request.TeamId
+                            && m.RemovedAt == null
+                            && !existingMemberIds.Contains(m.Id)
                         )
                         .Select(m => m.Id)
                         .ToListAsync(cancellationToken);
