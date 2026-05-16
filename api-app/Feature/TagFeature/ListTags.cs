@@ -11,9 +11,16 @@ namespace Feature.TagFeature;
 
 public static class ListTags
 {
-    public sealed record TagDto(Guid TagId, string Title, string Color, int CardCount);
+    public sealed record TagDto(
+        Guid TagId,
+        string Title,
+        string Color,
+        int CardCount,
+        bool IsAssigned
+    );
 
-    internal sealed record Query(Guid TeamId, Guid UserId) : IRequest<Result<List<TagDto>>>;
+    internal sealed record Query(Guid TeamId, Guid UserId, Guid? CardId)
+        : IRequest<Result<List<TagDto>>>;
 
     internal sealed class Handler(AppDbContext db) : IRequestHandler<Query, Result<List<TagDto>>>
     {
@@ -30,7 +37,13 @@ public static class ListTags
             List<TagDto> tags = await db
                 .Tags.Where(t => t.TeamId == req.TeamId)
                 .OrderBy(t => t.Title)
-                .Select(t => new TagDto(t.Id, t.Title, t.Color, t.CardTags.Count))
+                .Select(t => new TagDto(
+                    t.Id,
+                    t.Title,
+                    t.Color,
+                    t.CardTags.Count,
+                    req.CardId.HasValue && t.CardTags.Any(ct2 => ct2.CardId == req.CardId.Value)
+                ))
                 .ToListAsync(ct);
 
             return Result.Ok(tags);
@@ -43,14 +56,19 @@ public static class ListTags
         {
             app.MapGet(
                     "/api/teams/{teamId:guid}/tags",
-                    async (Guid teamId, ClaimsPrincipal user, ISender sender) =>
+                    async (
+                        Guid teamId,
+                        ClaimsPrincipal user,
+                        ISender sender,
+                        Guid? cardId = null
+                    ) =>
                     {
                         Guid? userId = user.GetUserId();
                         if (userId is null)
                             return Results.Unauthorized();
 
                         Result<List<TagDto>> result = await sender.Send(
-                            new Query(teamId, userId.Value)
+                            new Query(teamId, userId.Value, cardId)
                         );
 
                         return result.IsFailed

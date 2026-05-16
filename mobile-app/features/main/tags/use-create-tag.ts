@@ -1,13 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ApiResponse, axiosInstance } from "@/lib/axios";
 import { queryKeys } from "../_shared/query-keys";
-
-export type TagDto = {
-  tagId: string;
-  title: string;
-  color: string;
-  cardCount: number;
-};
+import { TagDto } from "./use-list-tags";
 
 async function createTag(
   teamId: string,

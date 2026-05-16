@@ -12,7 +12,7 @@ namespace Feature.TagFeature;
 
 public static class RemoveTagFromCard
 {
-    internal sealed record Command(Guid TeamId, Guid CardId, Guid TagId, Guid UserId)
+    internal sealed record Command(Guid TeamId, Guid BoardId, Guid CardId, Guid TagId, Guid UserId)
         : IRequest<Result>;
 
     internal sealed class Handler(AppDbContext db) : IRequestHandler<Command, Result>
@@ -61,7 +61,7 @@ public static class RemoveTagFromCard
                         if (userId is null)
                             return Results.Unauthorized();
 
-                        Command command = new(teamId, cardId, tagId, userId.Value);
+                        Command command = new(teamId, boardId, cardId, tagId, userId.Value);
                         Result result = await sender.Send(command);
 
                         return result.IsFailed

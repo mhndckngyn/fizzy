@@ -30,6 +30,12 @@ public static class CreateTag
             if (!isMember)
                 return Result.Fail("You are not a member of this team.");
 
+            if (string.IsNullOrWhiteSpace(req.Title))
+                return Result.Fail("Tag title cannot be empty.");
+
+            if (string.IsNullOrWhiteSpace(req.Color))
+                return Result.Fail("Tag color cannot be empty.");
+
             bool titleExists = await db.Tags.AnyAsync(
                 t => t.TeamId == req.TeamId && t.Title == req.Title.Trim(),
                 ct
@@ -48,7 +54,7 @@ public static class CreateTag
             db.Tags.Add(tag);
             await db.SaveChangesAsync(ct);
 
-            return Result.Ok(new ListTags.TagDto(tag.Id, tag.Title, tag.Color, 0));
+            return Result.Ok(new ListTags.TagDto(tag.Id, tag.Title, tag.Color, 1, true));
         }
     }
 

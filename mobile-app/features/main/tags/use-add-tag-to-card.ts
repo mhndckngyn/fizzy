@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ApiResponse, axiosInstance } from "@/lib/axios";
 import { queryKeys } from "../_shared/query-keys";
+import { TagDto } from "./use-list-tags";
 
 type AddTagResponse = {
   cardTagId: string;
@@ -30,9 +31,20 @@ export function useAddTagToCard(
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (tagId: string) => addTagToCard(teamId, boardId, cardId, tagId),
-    onSuccess: () => {
+    onSuccess: (_, tagId) => {
+      qc.setQueryData<TagDto[]>(queryKeys.tags(teamId), (old) =>
+        old?.map((t) => (t.tagId === tagId ? { ...t, isAssigned: true } : t)),
+      );
       qc.invalidateQueries({ queryKey: queryKeys.card(teamId, cardId) });
       qc.invalidateQueries({ queryKey: queryKeys.boardCards(teamId, boardId) });
+    },
+    onError: (err: any) => {
+      console.error(
+        "[useAddTagToCard] status:",
+        err?.response?.status,
+        "body:",
+        JSON.stringify(err?.response?.data),
+      );
     },
   });
 }
