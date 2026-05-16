@@ -55,6 +55,7 @@ import {
   YStack,
   ZStack,
 } from "tamagui";
+import { TagSection } from "@/features/main/tags/components/tag-section";
 
 const showToast = (message: string, type: "success" | "error") => {
   if (type === "error") {
@@ -377,6 +378,18 @@ export default function CardDetailPage() {
                   </XStack>
                 </YStack>
               </View>
+            </Card>
+
+            <Card padding="$3" backgroundColor={bgColor}>
+              <Text fontSize={13} color="$gray10" fontWeight="500" mb="$2">
+                Tags
+              </Text>
+              <TagSection
+                teamId={teamId}
+                boardId={boardId}
+                cardId={cardId}
+                assignedTags={cardData.tags ?? []}
+              />
             </Card>
 
             {/* SELECT BOARD OR COLUMN */}
