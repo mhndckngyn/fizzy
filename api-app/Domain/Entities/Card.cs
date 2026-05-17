@@ -14,6 +14,7 @@ public class Card : BaseEntity
     public Guid CreatorMemberId { get; set; }
     public Member Creator { get; set; } = null!;
     public Guid? ColumnId { get; set; }
+    public Column? Column { get; set; }
 
     // Trạng thái
     public CardNotNow? NotNow { get; set; }

@@ -6,8 +6,9 @@ export const NotificationSchema = z.object({
   title: z.string(),
   description: z.string(),
   cardNo: z.number(),
+  cardId: z.string(),
   boardName: z.string(),
-  columnId: z.string().nullable().optional(),
+  columnColor: z.string().nullable().optional(),
   unreadCount: z.number(),
   updatedAt: z.iso.datetime(),
 

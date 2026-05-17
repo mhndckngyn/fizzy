@@ -10,15 +10,16 @@ public static class NotificationMapper
     internal sealed record NotificationDto(
         Guid NotificationId,
         Guid TeamId,
-        string Title, // Event.Card.Title
-        string Description, // Event.Type && Event.Metadata
-        string ActorName, // Event.CreatorMember
-        int CardNo, // Event.Card.CardNo
-        string BoardName, // Event.Card.Board.Name
-        Guid? ColumnId, // Event.Card.ColumnId (for columnColor)
-        int UnreadCount, // UnreadCount
-        DateTime? ReadAt, // ReadAt
-        DateTime? UpdatedAt // UpdatedAt
+        string Title,
+        string Description,
+        string ActorName,
+        Guid CardId,
+        int CardNo,
+        string BoardName,
+        string? ColumnColor,
+        int UnreadCount,
+        DateTime? ReadAt,
+        DateTime? UpdatedAt
     );
 
     internal static NotificationDto MapToDto(Notification n) =>
@@ -28,9 +29,10 @@ public static class NotificationMapper
             n.Event.Card.Title ?? "",
             GetNotificationDescription(n),
             n.Event.CreatorMember.Name,
+            n.Event.Card.Id,
             n.Event.Card.No,
             n.Event.Card.Board.Name,
-            n.Event.Card.ColumnId,
+            n.Event.Card.Column?.Color,
             n.UnreadCount,
             n.ReadAt,
             n.UpdatedAt

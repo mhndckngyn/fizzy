@@ -1,3 +1,5 @@
+import chroma from "chroma-js";
+
 export function getInitials(name: string) {
   const initials = name
     .split(" ")
@@ -22,3 +24,7 @@ export function getInitials(name: string) {
 
   return { initials, color };
 }
+
+export const getDarkTint = (hexColor: string) => {
+  return chroma(hexColor).mix("black", 0.85).hex();
+};
