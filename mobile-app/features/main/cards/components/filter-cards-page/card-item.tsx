@@ -1,7 +1,8 @@
 import { TouchableOpacity } from "react-native";
-import { View, Text, XStack, YStack, Separator } from "tamagui";
-import { RefreshCw } from "@tamagui/lucide-icons-2";
+import { View, Text, XStack, YStack, Separator, Avatar } from "tamagui";
+import { RefreshCw, MessageSquare } from "@tamagui/lucide-icons-2";
 import { CardSummary } from "@/features/main/cards/use-filter-cards";
+import { getInitials } from "@/features/main/_shared/helpers";
 
 function daysAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -18,30 +19,6 @@ function updatedLabel(dateStr: string) {
   return `${Math.floor(days / 7)}W AGO`;
 }
 
-function AvatarCircle({ name, color }: { name: string; color: string }) {
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <View
-      width={36}
-      height={36}
-      borderRadius={18}
-      backgroundColor={color + "90"}
-      ai="center"
-      jc="center"
-    >
-      <Text color="white" fontSize={12} fontWeight="700">
-        {initials}
-      </Text>
-    </View>
-  );
-}
-
 export function CardItem({
   card,
   onPress,
@@ -56,6 +33,8 @@ export function CardItem({
   const addedDays = daysAgo(card.createdAt);
   const updatedText = updatedLabel(card.updatedAt ?? card.createdAt);
   const bgColor = `${colColor}18`;
+  const { initials, color } = getInitials(card.creatorName);
+  const comCount = card.commentsCount ?? 0;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.78}>
@@ -136,31 +115,55 @@ export function CardItem({
             </XStack>
           )}
 
-          <XStack ai="center" gap="$2" mt="$0.5">
-            {creatorName ? (
-              <AvatarCircle name={creatorName} color={colColor} />
-            ) : null}
+          <XStack ai="flex-end" jc="space-between" mt="$0.5">
+            <XStack ai="center" gap="$2" flex={1}>
+              <Avatar circular size="$3" borderWidth={0}>
+                <Avatar.Fallback
+                  ai="center"
+                  jc="center"
+                  backgroundColor={color}
+                >
+                  <Text color="white" fontWeight="bold" fontSize={15}>
+                    {initials}
+                  </Text>
+                </Avatar.Fallback>
+              </Avatar>
 
-            <YStack gap="$1">
-              <XStack ai="center" gap="$2">
-                <Text fontSize={11} color={colColor} fontWeight="600">
-                  ADDED {addedDays} DAYS AGO
-                </Text>
+              <YStack gap="$1">
+                <XStack ai="center" gap="$2">
+                  <Text fontSize={11} color={colColor} fontWeight="600">
+                    ADDED {addedDays} DAYS AGO
+                  </Text>
 
-                <Separator vertical borderColor={colColor} height={12} />
+                  <Separator vertical borderColor={colColor} height={12} />
 
-                <RefreshCw size={11} color={colColor} />
+                  <RefreshCw size={11} color={colColor} />
 
-                <Text fontSize={11} color={colColor} fontWeight="600">
-                  {updatedText}
+                  <Text fontSize={11} color={colColor} fontWeight="600">
+                    {updatedText}
+                  </Text>
+                </XStack>
+                {creatorName ? (
+                  <Text
+                    fontSize={11}
+                    color={colColor}
+                    fontWeight="600"
+                    ml="$0.5"
+                  >
+                    {creatorName.toUpperCase()}
+                  </Text>
+                ) : null}
+              </YStack>
+            </XStack>
+
+            {comCount > 0 && (
+              <XStack ai="center" gap="$1" borderRadius="$2" px="$1.5" py="$1">
+                <MessageSquare size={15} color={colColor} />
+                <Text fontSize={15} fontWeight="700" color={colColor}>
+                  {comCount}
                 </Text>
               </XStack>
-              {creatorName ? (
-                <Text fontSize={11} color={colColor} fontWeight="600" ml="$0.5">
-                  {creatorName.toUpperCase()}
-                </Text>
-              ) : null}
-            </YStack>
+            )}
           </XStack>
         </YStack>
       </View>

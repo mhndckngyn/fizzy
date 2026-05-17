@@ -33,6 +33,7 @@ export type CardSummary = {
   creatorName: string;
   updatedAt: string | null;
   closedAt: string | null;
+  commentsCount?: number;
 };
 
 export type FilterCardsResponse = {

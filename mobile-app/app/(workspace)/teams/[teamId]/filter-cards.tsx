@@ -1,7 +1,14 @@
 import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { TouchableOpacity, TextInput, FlatList, Keyboard } from "react-native";
 import { View, Text, XStack, YStack, ScrollView, Spinner } from "tamagui";
-import { SlidersHorizontal, Search, X } from "@tamagui/lucide-icons-2";
+import {
+  SlidersHorizontal,
+  Search,
+  X,
+  ArrowLeft,
+} from "@tamagui/lucide-icons-2";
+import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import {
   CardStatus,
   CardSortBy,
@@ -12,7 +19,7 @@ import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useBoards } from "@/features/main/boards/use-boards";
 import { useMembers } from "@/features/main/members/use-members";
 import { useTags } from "@/features/main/tags/use-list-tags";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { CardItem } from "@/features/main/cards/components/filter-cards-page/card-item";
 import { FilterPill } from "@/features/main/cards/components/filter-cards-page/filter-pill";
 import {
@@ -134,6 +141,27 @@ export default function FilterCardsScreen({
   const showBoardFilter = !initialBoardId;
   const selectedBoard = boards.find((b) => b.boardId === filters.boardId);
   const filtersActive = hasFilters(filters);
+  const queryClient = useQueryClient();
+
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({
+        queryKey: ["teams", teamId, "cards", "filter"],
+      });
+    }, [teamId, queryClient]),
+  );
+
+  const setHeader = useHeaderStore((s) => s.setHeader);
+  const resetHeader = useHeaderStore((s) => s.resetHeader);
+
+  useFocusEffect(
+    useCallback(() => {
+      setHeader({
+        leftAction: { icon: ArrowLeft, onPress: () => router.back() },
+      });
+      return resetHeader;
+    }, [setHeader, resetHeader, router]),
+  );
 
   return (
     <YStack flex={1} backgroundColor="$background">
