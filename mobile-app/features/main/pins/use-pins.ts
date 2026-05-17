@@ -12,6 +12,7 @@ export type PinnedCard = {
   columnName: string | null;
   columnColor: string | null;
   pinnedAt: string;
+  updatedAt?: string;
 };
 
 export const usePinnedCards = () => {

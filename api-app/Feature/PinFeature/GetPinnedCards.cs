@@ -22,7 +22,8 @@ public static class GetPinnedCards
         string BoardName,
         string? ColumnName,
         string? ColumnColor,
-        string PinnedAt
+        string PinnedAt,
+        DateTime? UpdatedAt
     );
 
     internal class GetPinnedCardsHandler(AppDbContext dbContext)
@@ -65,7 +66,8 @@ public static class GetPinnedCards
                             .Select(c => c.Color)
                             .FirstOrDefault()
                         : null,
-                    p.CreatedAt.ToString("o")
+                    p.CreatedAt.ToString("o"),
+                    p.Card.UpdatedAt
                 ))
                 .ToListAsync(ct);
 

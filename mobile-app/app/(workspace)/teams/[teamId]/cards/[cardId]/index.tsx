@@ -450,35 +450,46 @@ export default function CardDetailPage() {
             </Card>
 
             {/* ACTION BUTTONS */}
-            <XStack jc="center" gap="$4">
+            <XStack jc="center">
               <XStack
-                p="$2"
-                borderRadius="$3"
-                onPress={() => setCardWatch(!isWatchingCard)}
-                disabled={isPendingWatching}
-                pressStyle={{ opacity: 0.6 }}
-                opacity={isPendingWatching ? 0.5 : 1}
+                jc="center"
+                gap="$4"
+                backgroundColor={bgColor}
+                paddingVertical="$1.5"
+                paddingHorizontal="$3"
+                borderRadius="$8"
+                borderColor={`${columnColor}40`}
+                borderWidth={2}
               >
-                {isWatchingCard ? (
-                  <BellOff size={22} color="#586e8c" />
-                ) : (
-                  <Bell size={22} color="$gray8" />
-                )}
-              </XStack>
+                <XStack
+                  p="$2"
+                  borderRadius="$3"
+                  onPress={() => setCardWatch(!isWatchingCard)}
+                  disabled={isPendingWatching}
+                  pressStyle={{ opacity: 0.6 }}
+                  opacity={isPendingWatching ? 0.5 : 1}
+                >
+                  {isWatchingCard ? (
+                    <BellOff size={22} color="#586e8c" />
+                  ) : (
+                    <Bell size={22} color="$gray8" />
+                  )}
+                </XStack>
 
-              <XStack
-                p="$2"
-                borderRadius="$3"
-                onPress={() => togglePin(cardId)}
-                disabled={isPendingPinning}
-                pressStyle={{ opacity: 0.6 }}
-                opacity={isPendingPinning ? 0.5 : 1}
-              >
-                {isPinned ? (
-                  <PinOff size={22} color="#586e8c" />
-                ) : (
-                  <Pin size={22} color="$gray8" />
-                )}
+                <XStack
+                  p="$2"
+                  borderRadius="$3"
+                  onPress={() => togglePin(cardId)}
+                  disabled={isPendingPinning}
+                  pressStyle={{ opacity: 0.6 }}
+                  opacity={isPendingPinning ? 0.5 : 1}
+                >
+                  {isPinned ? (
+                    <PinOff size={22} color="#586e8c" />
+                  ) : (
+                    <Pin size={22} color="$gray8" />
+                  )}
+                </XStack>
               </XStack>
             </XStack>
 
