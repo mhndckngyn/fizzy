@@ -27,7 +27,7 @@ public class ColumnConfiguration : IEntityTypeConfiguration<Column>
 
         builder
             .HasMany(c => c.Cards)
-            .WithOne()
+            .WithOne(card => card.Column)
             .HasForeignKey(card => card.ColumnId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Cascade);
