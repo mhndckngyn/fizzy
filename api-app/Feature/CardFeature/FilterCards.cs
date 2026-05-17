@@ -30,7 +30,8 @@ public static class FilterCards
         DateTime CreatedAt,
         string CreatorName,
         DateTime? UpdatedAt,
-        DateTime? ClosedAt
+        DateTime? ClosedAt,
+        int CommentsCount
     );
 
     public sealed record Response(List<CardSummaryDto> Cards, int Total, int Page, int PageSize);
@@ -169,6 +170,7 @@ public static class FilterCards
                     Tags = c
                         .CardTags.Select(ct => new TagDto(ct.TagId, ct.Tag.Title, ct.Tag.Color))
                         .ToList(),
+                    CommentsCount = c.Comments.Count(),
                 })
                 .ToListAsync(ct);
 
@@ -230,7 +232,8 @@ public static class FilterCards
                         CreatedAt: r.CreatedAt,
                         CreatorName: r.CreatorName,
                         UpdatedAt: r.UpdatedAt,
-                        ClosedAt: r.ClosedAt
+                        ClosedAt: r.ClosedAt,
+                        CommentsCount: r.CommentsCount
                     );
                 })
                 .ToList();
