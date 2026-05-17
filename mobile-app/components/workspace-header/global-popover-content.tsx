@@ -1,12 +1,7 @@
+import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useTeams } from "@/features/main/teams/use-teams";
 import { useSignOut } from "@/features/user/use-sign-out";
-import {
-  Building2,
-  LogOut,
-  Plus,
-  Settings,
-  UserRoundCog,
-} from "@tamagui/lucide-icons-2";
+import { Building2, LogOut, Plus, Settings } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Accordion, Separator, YStack } from "tamagui";
@@ -17,6 +12,7 @@ export default function GlobalPopoverContent() {
   const router = useRouter();
   const { data: teamsData, isFetching: isLoadingTeams } = useTeams();
   const { mutate: signOut, isPending: isSigningOut } = useSignOut();
+  const { teamId } = useCurrentTeamParams();
 
   return (
     <>
@@ -44,8 +40,15 @@ export default function GlobalPopoverContent() {
 
         <AccordionSection value="settings" title="SETTINGS">
           <YStack>
-            <IconButton icon={Settings} label="App settings" />
-            <IconButton icon={UserRoundCog} label="User settings" />
+            {/* <IconButton icon={Settings} label="App settings" /> */}
+            {/* <IconButton icon={UserRoundCog} label="User settings" /> */}
+            {teamId && (
+              <IconButton
+                onPress={() => router.push(`/teams/${teamId}/team-settings`)}
+                icon={Settings}
+                label="Team Settings"
+              ></IconButton>
+            )}
             <IconButton onPress={signOut} icon={LogOut} label="Sign out" />
           </YStack>
         </AccordionSection>

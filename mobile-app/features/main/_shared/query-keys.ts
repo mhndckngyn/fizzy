@@ -23,6 +23,9 @@ export const queryKeys = {
 
   members: (teamId: string) => ["teams", teamId, "members"] as const,
 
+  invitationCode: (teamId: string) =>
+    ["teams", teamId, "invitation-code"] as const,
+
   comments: (teamId: string, cardId: string) =>
     ["teams", teamId, "cards", cardId, "comments"] as const,
 
