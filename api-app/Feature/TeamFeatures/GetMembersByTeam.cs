@@ -13,20 +13,22 @@ namespace Feature.TeamFeatures;
 public class GetMembersByTeam
 {
     internal sealed record GetTeamMembersQuery(Guid TeamId, Guid UserId)
-        : IRequest<Result<IEnumerable<MemberDto>>>;
+        : IRequest<Result<GetTeamMembersResponse>>;
 
     internal sealed record MemberDto(
         Guid MemberId,
-        string Name,
+        string MemberName,
         string Email,
         TeamRole Role,
         bool CanBeManaged
     );
 
+    internal sealed record GetTeamMembersResponse(IEnumerable<MemberDto> Members);
+
     internal class GetTeamMembersHandler(AppDbContext dbContext)
-        : IRequestHandler<GetTeamMembersQuery, Result<IEnumerable<MemberDto>>>
+        : IRequestHandler<GetTeamMembersQuery, Result<GetTeamMembersResponse>>
     {
-        public async Task<Result<IEnumerable<MemberDto>>> Handle(
+        public async Task<Result<GetTeamMembersResponse>> Handle(
             GetTeamMembersQuery request,
             CancellationToken cancellationToken
         )
@@ -58,7 +60,7 @@ public class GetMembersByTeam
                 CanBeManaged: requester.CanManage(m.Id, m.Role)
             ));
 
-            return Result.Ok(result);
+            return Result.Ok(new GetTeamMembersResponse(result));
         }
     }
 
