@@ -21,6 +21,8 @@ public class Member : BaseEntity
 
     public ICollection<Event> Events { get; set; } = [];
 
+    public bool CanManageTeam => Role is TeamRole.Owner or TeamRole.Administrator;
+
     public bool CanManage(Guid targetMemberId, TeamRole targerMemberRole)
     {
         if (Id == targetMemberId)

@@ -1,14 +1,19 @@
 import { useHeaderStore } from "@/components/workspace-header/use-header-store";
+import { useCurrentMemberStore } from "@/features/main/members/use-current-member-store";
 import { MembersSection } from "@/features/main/team-settings/components/members-section";
+import { TeamNameSection } from "@/features/main/team-settings/components/team-name-section";
 import { ArrowLeft } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
-import { ScrollView, YStack, Text } from "tamagui";
+import { ScrollView, Separator, YStack, Text } from "tamagui";
 
 export default function TeamSettingsScreen() {
   const router = useRouter();
   const setHeader = useHeaderStore((s) => s.setHeader);
   const resetHeader = useHeaderStore((s) => s.resetHeader);
+  const canManageTeam = useCurrentMemberStore(
+    (s) => s.currentMember?.canManageTeam ?? false,
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -28,7 +33,9 @@ export default function TeamSettingsScreen() {
       </YStack>
 
       <ScrollView>
-        <YStack px="$4" pb="$4">
+        <YStack px="$4" pb="$4" gap="$4">
+          <TeamNameSection canEdit={canManageTeam} />
+          <Separator borderColor="$gray4" />
           <MembersSection />
         </YStack>
       </ScrollView>
