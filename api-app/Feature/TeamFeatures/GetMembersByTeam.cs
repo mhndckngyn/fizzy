@@ -1,4 +1,7 @@
+using System.Security.Claims;
 using Carter;
+using Domain.Entities;
+using Domain.Enums;
 using Feature.Extensions;
 using FluentResults;
 using Infrastructure.Database;
@@ -9,30 +12,55 @@ namespace Feature.TeamFeatures;
 
 public class GetMembersByTeam
 {
-    internal sealed record GetTeamMembersCommand(Guid TeamId)
+    internal sealed record GetTeamMembersQuery(Guid TeamId, Guid UserId)
         : IRequest<Result<GetTeamMembersResponse>>;
+
+    internal sealed record MemberDto(
+        Guid MemberId,
+        string MemberName,
+        string Email,
+        TeamRole Role,
+        bool CanBeManaged
+    );
 
     internal sealed record GetTeamMembersResponse(IEnumerable<MemberDto> Members);
 
-    internal sealed record MemberDto(Guid MemberId, string MemberName);
-
     internal class GetTeamMembersHandler(AppDbContext dbContext)
-        : IRequestHandler<GetTeamMembersCommand, Result<GetTeamMembersResponse>>
+        : IRequestHandler<GetTeamMembersQuery, Result<GetTeamMembersResponse>>
     {
         public async Task<Result<GetTeamMembersResponse>> Handle(
-            GetTeamMembersCommand command,
+            GetTeamMembersQuery request,
             CancellationToken cancellationToken
         )
         {
-            IEnumerable<MemberDto> members = await dbContext
-                .Members.AsNoTracking()
-                .Where(m => m.TeamId == command.TeamId)
-                .Select(m => new MemberDto(m.Id, m.Name))
+            Member? requester = await dbContext.Members.FirstOrDefaultAsync(
+                m => m.UserId == request.UserId && m.TeamId == request.TeamId,
+                cancellationToken
+            );
+
+            if (requester is null)
+                return Result.Fail("You are not a member of this team.");
+
+            var members = await dbContext
+                .Members.Where(m => m.TeamId == request.TeamId && m.RemovedAt == null)
+                .Select(m => new
+                {
+                    m.Id,
+                    m.Name,
+                    m.Role,
+                    Email = m.User!.EmailAddress,
+                })
                 .ToListAsync(cancellationToken);
 
-            GetTeamMembersResponse response = new(members);
+            var result = members.Select(m => new MemberDto(
+                m.Id,
+                m.Name,
+                m.Email,
+                m.Role,
+                CanBeManaged: requester.CanManage(m.Id, m.Role)
+            ));
 
-            return Result.Ok(response);
+            return Result.Ok(new GetTeamMembersResponse(result));
         }
     }
 
@@ -42,11 +70,15 @@ public class GetMembersByTeam
         {
             app.MapGet(
                     "/api/teams/{teamId:guid}/members",
-                    async (Guid teamId, ISender sender) =>
+                    async (Guid teamId, ClaimsPrincipal user, ISender sender) =>
                     {
-                        GetTeamMembersCommand commmand = new(teamId);
+                        Guid? userId = user.GetUserId();
+                        if (userId is null)
+                            return Results.Unauthorized();
 
-                        Result<GetTeamMembersResponse> result = await sender.Send(commmand);
+                        var result = await sender.Send(
+                            new GetTeamMembersQuery(teamId, userId.Value)
+                        );
 
                         return result.ToMinimalApiResult();
                     }

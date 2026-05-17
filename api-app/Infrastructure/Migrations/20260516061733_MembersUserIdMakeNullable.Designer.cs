@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260516061733_MembersUserIdMakeNullable")]
+    partial class MembersUserIdMakeNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -323,45 +326,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("CardNotNows", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.CardTag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AddedByMemberId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CardId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("TagId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddedByMemberId");
-
-                    b.HasIndex("TagId");
-
-                    b.HasIndex("CardId", "TagId")
-                        .IsUnique();
-
-                    b.ToTable("CardTags", (string)null);
-                });
-
             modelBuilder.Entity("Domain.Entities.CardWatch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -664,47 +628,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("Pins", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("#6b7280");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("TeamId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TeamId", "Title")
-                        .IsUnique();
-
-                    b.ToTable("Tags", (string)null);
-                });
-
             modelBuilder.Entity("Domain.Entities.Team", b =>
                 {
                     b.Property<Guid>("Id")
@@ -969,33 +892,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Card");
                 });
 
-            modelBuilder.Entity("Domain.Entities.CardTag", b =>
-                {
-                    b.HasOne("Domain.Entities.Member", "AddedBy")
-                        .WithMany()
-                        .HasForeignKey("AddedByMemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Card", "Card")
-                        .WithMany("CardTags")
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Tag", "Tag")
-                        .WithMany("CardTags")
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AddedBy");
-
-                    b.Navigation("Card");
-
-                    b.Navigation("Tag");
-                });
-
             modelBuilder.Entity("Domain.Entities.CardWatch", b =>
                 {
                     b.HasOne("Domain.Entities.Card", "Card")
@@ -1158,17 +1054,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Team");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Tag", b =>
-                {
-                    b.HasOne("Domain.Entities.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Team");
-                });
-
             modelBuilder.Entity("Domain.Entities.Board", b =>
                 {
                     b.Navigation("BoardAccesses");
@@ -1179,8 +1064,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Card", b =>
                 {
                     b.Navigation("Assignments");
-
-                    b.Navigation("CardTags");
 
                     b.Navigation("CardWatches");
 
@@ -1205,11 +1088,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Member", b =>
                 {
                     b.Navigation("Events");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Tag", b =>
-                {
-                    b.Navigation("CardTags");
                 });
 
             modelBuilder.Entity("Domain.Entities.Team", b =>

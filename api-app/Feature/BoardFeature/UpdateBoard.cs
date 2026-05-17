@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Carter;
 using Domain.Entities;
-using Domain.Enums;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -46,9 +45,6 @@ public static class UpdateBoard
             if (member is null)
                 return Result.Fail("You are not a member of this team.");
 
-            if (member.Role is not (TeamRole.Owner or TeamRole.Administrator))
-                return Result.Fail("Only Owners and Administrators can update board settings.");
-
             var board = await dbContext.Boards.FirstOrDefaultAsync(
                 b => b.Id == request.BoardId && b.TeamId == request.TeamId,
                 cancellationToken
@@ -56,6 +52,11 @@ public static class UpdateBoard
 
             if (board is null)
                 return Result.Fail("Board not found.");
+
+            if (!board.CanBeUpdatedBy(member))
+                return Result.Fail(
+                    "Only Owners, Administrators, or the board creator can update board settings."
+                );
 
             bool turningOnAllAccess = request.AllAccess && !board.AllAccess;
             bool turningOffAllAccess = !request.AllAccess && board.AllAccess;
@@ -78,7 +79,9 @@ public static class UpdateBoard
 
                     var newAccesses = await dbContext
                         .Members.Where(m =>
-                            m.TeamId == request.TeamId && !existingMemberIds.Contains(m.Id)
+                            m.TeamId == request.TeamId
+                            && m.RemovedAt == null
+                            && !existingMemberIds.Contains(m.Id)
                         )
                         .Select(m => m.Id)
                         .ToListAsync(cancellationToken);

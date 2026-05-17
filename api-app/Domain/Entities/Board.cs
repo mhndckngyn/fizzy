@@ -1,4 +1,5 @@
 using Domain.Common;
+using Domain.Enums;
 
 namespace Domain.Entities;
 
@@ -13,4 +14,7 @@ public class Board : BaseEntity
     public ICollection<Card> Cards { get; set; } = new List<Card>();
 
     public ICollection<BoardAccess> BoardAccesses { get; set; } = new List<BoardAccess>();
+
+    public bool CanBeUpdatedBy(Member member) =>
+        member.Role is TeamRole.Owner or TeamRole.Administrator || CreatorMemberId == member.Id;
 }
