@@ -1,3 +1,5 @@
+import { FilterCardsParams } from "@/features/main/cards/use-filter-cards";
+
 export const queryKeys = {
   // TODO every key should include "sessions" (as used in use-session)
 
@@ -27,4 +29,7 @@ export const queryKeys = {
   pins: (teamId: string) => ["pins", teamId] as const,
 
   tags: (teamId: string) => ["teams", teamId, "tags"] as const,
+
+  filterCards: (teamId: string, params: FilterCardsParams) =>
+    ["teams", teamId, "cards", "filter", params] as const,
 };
