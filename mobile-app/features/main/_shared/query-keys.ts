@@ -9,6 +9,9 @@ export const queryKeys = {
 
   boards: (teamId: string) => ["teams", teamId, "boards", "list"] as const,
 
+  boardAccesses: (teamId: string, boardId: string) =>
+    ["teams", teamId, "boards", boardId, "accesses"] as const,
+
   columns: (teamId: string, boardId: string) =>
     ["teams", teamId, "boards", boardId, "columns"] as const,
 

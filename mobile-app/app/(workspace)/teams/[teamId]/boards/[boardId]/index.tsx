@@ -16,8 +16,8 @@ import { ColumnWithCards } from "@/features/main/columns/types";
 import { useCreateColumn } from "@/features/main/columns/use-create-column";
 import { useUpdateColumn } from "@/features/main/columns/use-update-column";
 import { Bell, BellOff, Plus, Settings } from "@tamagui/lucide-icons-2";
-import { useFocusEffect, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { Dimensions, RefreshControl, ScrollView } from "react-native";
 import { Button, Text, View, XStack } from "tamagui";
@@ -89,12 +89,13 @@ export default function KanbanBoard() {
         },
         rightAction: {
           icon: Settings,
-          onPress: () => console.log("TODO: Board settings"),
+          onPress: () =>
+            router.push(`/teams/${teamId}/boards/${boardId}/settings`),
         },
       });
 
       return resetHeader;
-    }, [teamId, setHeader, resetHeader, router]),
+    }, [teamId, boardId, setHeader, resetHeader, router]),
   );
 
   const openAddSheet = () => {
