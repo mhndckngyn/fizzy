@@ -22,7 +22,7 @@ export function InviteSection({ membersCount }: { membersCount: number }) {
         <Text
           fontSize="$3"
           fontWeight="700"
-          color="$gray11"
+          color="$gray9"
           letterSpacing={0.5}
           textTransform="uppercase"
         >

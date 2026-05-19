@@ -1,6 +1,6 @@
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
-import { useUpdateTeam } from "@/features/main/teams/use-update-team";
 import { useTeams } from "@/features/main/teams/use-teams";
+import { useUpdateTeam } from "@/features/main/teams/use-update-team";
 import { Check, Pencil, X } from "@tamagui/lucide-icons-2";
 import { useState } from "react";
 import { Input, Spinner, Text, View, XStack, YStack } from "tamagui";
@@ -38,7 +38,7 @@ export function TeamNameSection({ canEdit }: { canEdit: boolean }) {
       <Text
         fontSize="$3"
         fontWeight="700"
-        color="$gray11"
+        color="$gray9"
         letterSpacing={0.5}
         textTransform="uppercase"
       >

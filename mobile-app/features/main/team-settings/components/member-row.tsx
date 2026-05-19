@@ -4,13 +4,7 @@ import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { Member, TeamRole } from "@/features/main/members/types";
 import { useRemoveMember } from "@/features/main/members/use-remove-member";
 import { useSetMemberRole } from "@/features/main/members/use-set-member-role";
-import {
-  Crown,
-  Minus,
-  ShieldCheck,
-  User,
-  UserMinus,
-} from "@tamagui/lucide-icons-2";
+import { Crown, Minus, ShieldCheck, User } from "@tamagui/lucide-icons-2";
 import { useState } from "react";
 import { Text, View, XStack, YStack } from "tamagui";
 

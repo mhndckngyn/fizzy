@@ -14,8 +14,11 @@ export function TeamBottomBar() {
   const pathname = usePathname();
 
   const hasUnread = notificationData?.notifications.some((n) => !n.readAt);
+
   const isPinned = pathname.endsWith("/pinned");
   const isNotifications = pathname.endsWith("/notifications");
+  const isSettings = pathname.endsWith("/team-settings");
+
   const teamName = teamsData?.teams.find((t) => t.teamId === teamId)?.name;
 
   return (
@@ -40,14 +43,16 @@ export function TeamBottomBar() {
       </Link>
 
       {!!teamName && (
-        <Text
-          fontSize="$5"
-          fontWeight="700"
-          textAlign="center"
-          color={ICON_COLOR}
-        >
-          {teamName}
-        </Text>
+        <Link href={`/teams/${teamId}/team-settings`}>
+          <Text
+            fontSize="$5"
+            fontWeight="700"
+            textAlign="center"
+            color={isSettings ? "$blue10" : "$gray11"}
+          >
+            {teamName}
+          </Text>
+        </Link>
       )}
 
       <Link href={`/teams/${teamId}/notifications`} asChild>
