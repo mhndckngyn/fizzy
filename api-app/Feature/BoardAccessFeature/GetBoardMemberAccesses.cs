@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Carter;
-using Domain.Enums;
+using Domain.Entities;
 using Feature.ApiResponses;
 using Feature.Extensions;
 using FluentResults;
@@ -36,18 +36,18 @@ public static class GetBoardMemberAccesses
             CancellationToken cancellationToken
         )
         {
-            var requester = await dbContext
-                .Members.Where(m => m.UserId == request.UserId && m.TeamId == request.TeamId)
-                .Select(m => new { m.Id, m.Role })
-                .FirstOrDefaultAsync(cancellationToken);
+            Member? requester = await dbContext.Members.FirstOrDefaultAsync(
+                m => m.UserId == request.UserId && m.TeamId == request.TeamId,
+                cancellationToken
+            );
 
             if (requester is null)
                 return Result.Fail("You are not a member of this team.");
 
-            var board = await dbContext
-                .Boards.Where(b => b.Id == request.BoardId && b.TeamId == request.TeamId)
-                .Select(b => new { b.AllAccess })
-                .FirstOrDefaultAsync(cancellationToken);
+            Board? board = await dbContext.Boards.FirstOrDefaultAsync(
+                b => b.Id == request.BoardId && b.TeamId == request.TeamId,
+                cancellationToken
+            );
 
             if (board is null)
                 return Result.Fail("Board not found.");
@@ -59,6 +59,7 @@ public static class GetBoardMemberAccesses
 
             var members = await dbContext
                 .Members.Where(m => m.TeamId == request.TeamId && m.RemovedAt == null)
+                .OrderBy(m => m.Name)
                 .Select(m => new MemberAccessEntry(
                     m.Id,
                     m.Name,
@@ -67,10 +68,12 @@ public static class GetBoardMemberAccesses
                 ))
                 .ToListAsync(cancellationToken);
 
-            bool canManage = requester.Role is TeamRole.Owner or TeamRole.Administrator;
-
             return Result.Ok(
-                new GetBoardMemberAccessesResponse(canManage, board.AllAccess, members)
+                new GetBoardMemberAccessesResponse(
+                    board.CanBeUpdatedBy(requester),
+                    board.AllAccess,
+                    members
+                )
             );
         }
     }

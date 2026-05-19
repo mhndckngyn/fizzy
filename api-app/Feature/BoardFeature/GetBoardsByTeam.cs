@@ -37,6 +37,7 @@ public static class GetBoardsByTeam
 
             List<BoardDto> boards = await dbContext
                 .BoardAccesses.Where(ba => ba.TeamId == request.TeamId && ba.MemberId == memberId)
+                .OrderBy(ba => ba.Board.Name)
                 .Select(ba => new BoardDto(
                     ba.BoardId,
                     ba.Board.Name,

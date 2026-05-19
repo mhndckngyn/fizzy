@@ -1,16 +1,21 @@
-import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
-import { useTeams } from "@/features/main/teams/use-teams";
-import { useUpdateTeam } from "@/features/main/teams/use-update-team";
+import {
+  useCurrentBoardParams,
+  useCurrentTeamParams,
+} from "@/features/main/_shared/hooks";
+import { useBoards } from "@/features/main/boards/use-boards";
+import { useUpdateBoard } from "@/features/main/boards/use-update-board";
 import { Check, Pencil, X } from "@tamagui/lucide-icons-2";
 import { useState } from "react";
 import { Input, Spinner, Text, View, XStack, YStack } from "tamagui";
 
-export function TeamNameSection({ canEdit }: { canEdit: boolean }) {
+export function BoardNameSection({ canEdit }: { canEdit: boolean }) {
   const { teamId } = useCurrentTeamParams();
-  const { data } = useTeams();
-  const { mutate, isPending } = useUpdateTeam();
+  const boardId = useCurrentBoardParams();
+  const { data } = useBoards();
+  const { mutate, isPending } = useUpdateBoard();
 
-  const currentName = data?.teams.find((t) => t.teamId === teamId)?.name ?? "";
+  const currentName =
+    data?.boards.find((b) => b.boardId === boardId)?.name ?? "";
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -30,7 +35,10 @@ export function TeamNameSection({ canEdit }: { canEdit: boolean }) {
       setEditing(false);
       return;
     }
-    mutate({ teamId, name: trimmed }, { onSuccess: () => setEditing(false) });
+    mutate(
+      { teamId, boardId, name: trimmed },
+      { onSuccess: () => setEditing(false) },
+    );
   }
 
   return (
@@ -42,7 +50,7 @@ export function TeamNameSection({ canEdit }: { canEdit: boolean }) {
         letterSpacing={0.5}
         textTransform="uppercase"
       >
-        Team name
+        Board name
       </Text>
 
       {editing ? (
