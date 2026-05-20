@@ -38,9 +38,8 @@ public static class GetNotificationsByMember
             }
 
             List<Notification> notifications = await dbContext
-                .Notifications.Where(n =>
-                    n.TeamId == request.TeamId && n.RecipientMemberId == member.Id
-                )
+                .Notifications.AsNoTracking()
+                .Where(n => n.TeamId == request.TeamId && n.RecipientMemberId == member.Id)
                 .Include(n => n.Event)
                     .ThenInclude(e => e.Card)
                         .ThenInclude(c => c.Board)

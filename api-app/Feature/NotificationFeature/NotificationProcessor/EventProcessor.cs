@@ -19,6 +19,8 @@ public class EventProcessor(
         Event? evnt = await dbContext
             .Events.Include(e => e.Card)
                 .ThenInclude(c => c.Board)
+            .Include(e => e.Card)
+                .ThenInclude(c => c.Column)
             .Include(e => e.CreatorMember)
             .FirstOrDefaultAsync(e => e.Id == eventId);
 
