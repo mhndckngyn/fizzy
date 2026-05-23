@@ -30,7 +30,8 @@ public static class GetCard
         DateTime CreatedAt,
         DateTime? UpdatedAt,
         List<GetCardAssignee> Assignments,
-        bool IsWatching
+        bool IsWatching,
+        bool IsGolden
     );
 
     // Handler không cần ISender — query CardContents trực tiếp
@@ -93,6 +94,7 @@ public static class GetCard
                     IsWatching = dbContext.CardWatches.Any(cw =>
                         cw.CardId == c.Id && cw.MemberId == memberId && cw.Watching
                     ),
+                    IsGolden = dbContext.CardGoldnesses.Any(g => g.CardId == c.Id),
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -114,7 +116,8 @@ public static class GetCard
                     card.CreatedAt,
                     card.UpdatedAt,
                     card.Assignments,
-                    card.IsWatching
+                    card.IsWatching,
+                    card.IsGolden
                 )
             );
         }

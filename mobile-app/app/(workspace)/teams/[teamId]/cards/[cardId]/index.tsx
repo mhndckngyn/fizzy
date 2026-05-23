@@ -38,6 +38,8 @@ import {
   PinOff,
   Save,
   X,
+  Star,
+  StarOff,
 } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -56,6 +58,7 @@ import {
   ZStack,
 } from "tamagui";
 import { TagSection } from "@/features/main/tags/components/tag-section";
+import { useToggleCardGolden } from "@/features/main/cards/use-toggle-card-golden";
 
 const showToast = (message: string, type: "success" | "error") => {
   if (type === "error") {
@@ -101,6 +104,11 @@ export default function CardDetailPage() {
 
   const isPinned = pinnedCards?.some((p) => p.cardId === cardId) ?? false;
   const isWatchingCard = cardData?.isWatching ?? false;
+
+  const { mutate: toggleGolden, isPending: isPendingGolden } =
+    useToggleCardGolden();
+
+  const isGolden = cardData?.isGolden ?? false;
 
   useEffect(() => {
     if (!cardData) return;
@@ -388,7 +396,7 @@ export default function CardDetailPage() {
                 teamId={teamId}
                 boardId={boardId}
                 cardId={cardId}
-                assignedTags={cardData.tags ?? []}
+                //assignedTags={cardData.tags ?? []}
               />
             </Card>
 
@@ -461,6 +469,22 @@ export default function CardDetailPage() {
                 borderColor={`${columnColor}40`}
                 borderWidth={2}
               >
+                {/* Golden */}
+                <XStack
+                  p="$2"
+                  borderRadius="$3"
+                  onPress={() => toggleGolden({ teamId, boardId, cardId })}
+                  disabled={isPendingGolden}
+                  pressStyle={{ opacity: 0.6 }}
+                  opacity={isPendingGolden ? 0.5 : 1}
+                >
+                  {isGolden ? (
+                    <StarOff size={22} color="#586e8c" />
+                  ) : (
+                    <Star size={22} color="$gray8" />
+                  )}
+                </XStack>
+
                 <XStack
                   p="$2"
                   borderRadius="$3"
