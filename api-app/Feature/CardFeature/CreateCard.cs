@@ -19,7 +19,8 @@ public static class CreateCard
         string? Title,
         string? Body,
         List<Guid>? AssignedMemberIds,
-        List<Guid>? MentionedMemberIds
+        List<Guid>? MentionedMemberIds,
+        List<Guid>? TagIds
     );
 
     internal sealed record CreateCardCommand(
@@ -27,6 +28,7 @@ public static class CreateCard
         string? Body,
         List<Guid>? AssignedMemberIds,
         List<Guid>? MentionedMemberIds,
+        List<Guid>? TagIds,
         Guid TeamId,
         Guid BoardId,
         Guid UserId
@@ -34,7 +36,7 @@ public static class CreateCard
 
     internal sealed record CreateCardResponse(Guid CardId, int No, string? Title);
 
-    internal class CreateCardHandler(AppDbContext dbContext, ISender sender)
+    internal class CreateCardHandler(AppDbContext dbContext)
         : IRequestHandler<CreateCardCommand, Result<CreateCardResponse>>
     {
         public async Task<Result<CreateCardResponse>> Handle(
@@ -42,7 +44,6 @@ public static class CreateCard
             CancellationToken cancellationToken
         )
         {
-            // Lấy member + teamId trong 1 query
             var memberInfo = await dbContext
                 .Members.Where(m => m.UserId == request.UserId && m.TeamId == request.TeamId)
                 .Select(m => new { m.Id, m.TeamId })
@@ -53,8 +54,6 @@ public static class CreateCard
 
             Guid teamId = request.TeamId;
 
-            // Tăng CardsCount của team và lấy No mới
-            // Dùng ExecuteUpdate để atomic increment, tránh race condition
             int updatedRows = await dbContext
                 .Teams.Where(t => t.Id == teamId)
                 .ExecuteUpdateAsync(
@@ -65,7 +64,6 @@ public static class CreateCard
             if (updatedRows == 0)
                 return Result.Fail("Team not found.");
 
-            // Lấy CardsCount mới sau khi increment
             long newNo = await dbContext
                 .Teams.Where(t => t.Id == teamId)
                 .Select(t => t.CardsCount)
@@ -95,10 +93,9 @@ public static class CreateCard
 
             dbContext.AddRange(card, content, maybe, createEvent, creatorCardWatch);
 
-            // Xử lý assignments nếu có
+            // Xử lý assignments
             if (request.AssignedMemberIds is { Count: > 0 })
             {
-                // Validate các memberId đều thuộc team, tránh FK violation
                 var validMemberIds = await dbContext
                     .Members.Where(m =>
                         m.TeamId == teamId && request.AssignedMemberIds.Contains(m.Id)
@@ -131,7 +128,7 @@ public static class CreateCard
                 dbContext.Events.AddRange(assignmentEvents);
             }
 
-            // Process mentions
+            // Xử lý mentions
             if (request.MentionedMemberIds is { Count: > 0 } mentionIds)
             {
                 CardMentionMetadata metadataObj = new() { MentionedMemberIds = mentionIds };
@@ -142,9 +139,27 @@ public static class CreateCard
                     cardId: card.Id,
                     metadata: JsonSerializer.Serialize(metadataObj)
                 );
-                // TODO subscribe the mentioned members (do the same for UpdateCard)
                 dbContext.Events.Add(mentionEvent);
             }
+
+            // Xử lý tags
+            if (request.TagIds is { Count: > 0 })
+            {
+                var validTagIds = await dbContext
+                    .Tags.Where(t => t.TeamId == teamId && request.TagIds.Contains(t.Id))
+                    .Select(t => t.Id)
+                    .ToListAsync(cancellationToken);
+
+                var cardTags = validTagIds.Select(tagId => new CardTag
+                {
+                    CardId = card.Id,
+                    TagId = tagId,
+                    AddedByMemberId = memberInfo.Id,
+                });
+
+                dbContext.CardTags.AddRange(cardTags);
+            }
+
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Result.Ok(new CreateCardResponse(card.Id, card.No, card.Title));
@@ -156,7 +171,7 @@ public static class CreateCard
         public void AddRoutes(IEndpointRouteBuilder app)
         {
             app.MapPost(
-                    "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards", // TODO put board in body
+                    "/api/teams/{teamId:guid}/boards/{boardId:guid}/cards",
                     async (
                         Guid teamId,
                         Guid boardId,
@@ -174,6 +189,7 @@ public static class CreateCard
                             request.Body,
                             request.AssignedMemberIds,
                             request.MentionedMemberIds,
+                            request.TagIds,
                             teamId,
                             boardId,
                             userId.Value

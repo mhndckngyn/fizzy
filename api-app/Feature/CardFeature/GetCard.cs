@@ -16,6 +16,8 @@ public static class GetCard
 
     internal sealed record GetCardAssignee(Guid MemberId, string Name);
 
+    internal sealed record GetCardTag(Guid TagId, string Title, string Color);
+
     internal sealed record GetCardResponse(
         Guid CardId,
         int No,
@@ -31,10 +33,10 @@ public static class GetCard
         DateTime? UpdatedAt,
         List<GetCardAssignee> Assignments,
         bool IsWatching,
-        bool IsGolden
+        bool IsGolden,
+        List<GetCardTag> Tags
     );
 
-    // Handler không cần ISender — query CardContents trực tiếp
     internal class GetCardHandler(AppDbContext dbContext)
         : IRequestHandler<GetCardQuery, Result<GetCardResponse>>
     {
@@ -95,6 +97,15 @@ public static class GetCard
                         cw.CardId == c.Id && cw.MemberId == memberId && cw.Watching
                     ),
                     IsGolden = dbContext.CardGoldnesses.Any(g => g.CardId == c.Id),
+                    Tags = dbContext
+                        .CardTags.Where(ct => ct.CardId == c.Id)
+                        .Join(
+                            dbContext.Tags,
+                            ct => ct.TagId,
+                            t => t.Id,
+                            (ct, t) => new GetCardTag(t.Id, t.Title, t.Color)
+                        )
+                        .ToList(),
                 })
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -117,7 +128,8 @@ public static class GetCard
                     card.UpdatedAt,
                     card.Assignments,
                     card.IsWatching,
-                    card.IsGolden
+                    card.IsGolden,
+                    card.Tags
                 )
             );
         }

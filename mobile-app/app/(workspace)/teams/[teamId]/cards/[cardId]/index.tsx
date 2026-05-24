@@ -389,14 +389,11 @@ export default function CardDetailPage() {
             </Card>
 
             <Card padding="$3" backgroundColor={bgColor}>
-              <Text fontSize={13} color="$gray10" fontWeight="500" mb="$2">
-                Tags
-              </Text>
               <TagSection
                 teamId={teamId}
                 boardId={boardId}
                 cardId={cardId}
-                //assignedTags={cardData.tags ?? []}
+                assignedTags={cardData.tags ?? []}
               />
             </Card>
 

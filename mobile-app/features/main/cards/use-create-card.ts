@@ -9,6 +9,7 @@ export type CreateCardRequest = {
   title?: string;
   body?: string;
   assignedMemberIds?: string[];
+  tagIds?: string[];
 };
 
 export type CreateCardResponse = {
@@ -23,10 +24,11 @@ export async function createCard({
   title,
   body,
   assignedMemberIds,
+  tagIds,
 }: CreateCardRequest) {
   const response = await axiosInstance.post<ApiResponse<CreateCardResponse>>(
     `/api/teams/${teamId}/boards/${boardId}/cards`,
-    { title, body, assignedMemberIds },
+    { title, body, assignedMemberIds, tagIds },
   );
   return response.data.data;
 }
