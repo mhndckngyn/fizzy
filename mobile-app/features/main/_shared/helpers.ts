@@ -25,6 +25,18 @@ export function getInitials(name: string) {
   return { initials, color };
 }
 
-export const getDarkTint = (hexColor: string) => {
+export const getTextTint = (hexColor: string) => {
   return chroma(hexColor).mix("black", 0.85).hex();
+};
+
+export const getBackgroundTint = (hexColor: string) => {
+  return chroma(hexColor).mix("white", 0.85).hex();
+};
+
+export const getLightTint = (hexColor: string, ratio: number) => {
+  return chroma(hexColor).mix("white", ratio).hex();
+};
+
+export const getDarkTint = (hexColor: string, ratio: number) => {
+  return chroma(hexColor).mix("black", ratio).hex();
 };

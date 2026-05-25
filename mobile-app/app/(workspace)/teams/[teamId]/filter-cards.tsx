@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TouchableOpacity, TextInput, FlatList, Keyboard } from "react-native";
 import { View, Text, XStack, YStack, ScrollView, Spinner } from "tamagui";
@@ -19,7 +19,7 @@ import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useBoards } from "@/features/main/boards/use-boards";
 import { useMembers } from "@/features/main/members/use-members";
 import { useTags } from "@/features/main/tags/use-list-tags";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { CardItem } from "@/features/main/cards/components/filter-cards-page/card-item";
 import { FilterPill } from "@/features/main/cards/components/filter-cards-page/filter-pill";
 import {
@@ -76,13 +76,49 @@ function hasFilters(f: FilterState) {
 
 export type FilterCardsScreenProps = {
   initialBoardId?: string;
+  initialAssignedToIds?: string[];
+  initialAddedByIds?: string[];
 };
 
 export default function FilterCardsScreen({
   initialBoardId,
+  initialAssignedToIds,
+  initialAddedByIds,
 }: FilterCardsScreenProps) {
   const { teamId } = useCurrentTeamParams();
   const router = useRouter();
+
+  const params = useLocalSearchParams<{
+    initialBoardId?: string;
+    initialAssignedToIds?: string | string[];
+    initialAddedByIds?: string | string[];
+  }>();
+
+  const resolvedBoardId =
+    initialBoardId ??
+    (typeof params.initialBoardId === "string"
+      ? params.initialBoardId
+      : undefined);
+  const resolvedAssignedToIds = useMemo(
+    () =>
+      initialAssignedToIds ??
+      (params.initialAssignedToIds
+        ? Array.isArray(params.initialAssignedToIds)
+          ? params.initialAssignedToIds
+          : [params.initialAssignedToIds]
+        : []),
+    [initialAssignedToIds, params.initialAssignedToIds],
+  );
+  const resolvedAddedByIds = useMemo(
+    () =>
+      initialAddedByIds ??
+      (params.initialAddedByIds
+        ? Array.isArray(params.initialAddedByIds)
+          ? params.initialAddedByIds
+          : [params.initialAddedByIds]
+        : []),
+    [initialAddedByIds, params.initialAddedByIds],
+  );
 
   const { data: boardsData } = useBoards();
   const { data: membersData } = useMembers();
@@ -94,7 +130,9 @@ export default function FilterCardsScreen({
 
   const [filters, setFilters] = useState<FilterState>({
     ...DEFAULT_FILTERS,
-    boardId: initialBoardId ?? null,
+    boardId: resolvedBoardId ?? null,
+    assignedToIds: resolvedAssignedToIds,
+    addedByIds: resolvedAddedByIds,
   });
   const [sheetOpen, setSheetOpen] = useState<SheetOpen>(null);
 
@@ -108,9 +146,11 @@ export default function FilterCardsScreen({
     () =>
       setFilters({
         ...DEFAULT_FILTERS,
-        boardId: initialBoardId ?? null,
+        boardId: resolvedBoardId ?? null,
+        assignedToIds: resolvedAssignedToIds,
+        addedByIds: resolvedAddedByIds,
       }),
-    [initialBoardId],
+    [resolvedBoardId, resolvedAssignedToIds, resolvedAddedByIds],
   );
 
   const queryParams: FilterCardsParams = {
@@ -138,7 +178,7 @@ export default function FilterCardsScreen({
     color: t.color,
   }));
 
-  const showBoardFilter = !initialBoardId;
+  const showBoardFilter = !resolvedBoardId;
   const selectedBoard = boards.find((b) => b.boardId === filters.boardId);
   const filtersActive = hasFilters(filters);
   const queryClient = useQueryClient();

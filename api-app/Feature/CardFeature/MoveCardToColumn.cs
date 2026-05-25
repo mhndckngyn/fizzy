@@ -94,7 +94,13 @@ public static class MoveCardToColumn
                     );
 
                 AppEvent? eventType = null;
-                if (card.ColumnId != null)
+                if (
+                    card.ColumnId != null
+                    || await dbContext.CardMaybes.AnyAsync(
+                        c => c.CardId == request.CardId,
+                        cancellationToken
+                    )
+                )
                     eventType = AppEvent.CardColumnChange;
                 else if (
                     await dbContext.CardDones.AnyAsync(

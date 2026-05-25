@@ -1,4 +1,4 @@
-import { getDarkTint, getInitials } from "@/features/main/_shared/helpers";
+import { getTextTint, getInitials } from "@/features/main/_shared/helpers";
 import { Notification } from "@/features/main/notifications/types";
 import { useReadNotification } from "@/features/main/notifications/use-read-notification";
 import { format } from "date-fns";
@@ -18,7 +18,7 @@ export function NotificationItem({
   const bgColor = `${themeColor}18`;
   const actorName = item.actorName ?? "Someone";
   const { initials, color } = getInitials(actorName);
-  const titleColor = getDarkTint(themeColor);
+  const titleColor = getTextTint(themeColor);
   const isUnread = !item.readAt;
   const router = useRouter();
   const { mutate: readNotification } = useReadNotification(teamId);

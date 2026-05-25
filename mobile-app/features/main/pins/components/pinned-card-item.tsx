@@ -1,4 +1,4 @@
-import { getDarkTint } from "@/features/main/_shared/helpers";
+import { getTextTint } from "@/features/main/_shared/helpers";
 import { PinnedCard } from "@/features/main/pins/use-pins";
 import { Link } from "expo-router";
 import { Separator, Text, View, XStack, YStack } from "tamagui";
@@ -22,7 +22,7 @@ export function PinnedCardItem({
   const columnColor = pin.columnColor ?? "#3d4e65";
   const bgColor = `${columnColor}18`;
   const columnName = pin.columnName?.toUpperCase() ?? "";
-  const titleColor = pin.columnColor ? getDarkTint(pin.columnColor) : "$gray12";
+  const titleColor = pin.columnColor ? getTextTint(pin.columnColor) : "$gray12";
 
   return (
     <Link href={`/teams/${teamId}/cards/${pin.cardId}`} asChild>

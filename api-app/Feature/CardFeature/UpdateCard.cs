@@ -11,7 +11,7 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class UpdateCard
 {
@@ -59,19 +59,26 @@ public static class UpdateCard
                 return Result.Fail("Card not found.");
 
             bool titleChanged = request.Title != null && request.Title != card.Title;
-            card.Title = request.Title;
-
             if (titleChanged)
             {
+                CardTitleChangeMetadata metadata = new()
+                {
+                    OldTitle = card.Title ?? "",
+                    NewTitle = request.Title ?? "",
+                };
+
                 dbContext.Events.Add(
                     new Event(
                         appEventType: AppEvent.CardTitleChanged,
                         teamId: card.TeamId,
                         creatorMemberId: member.Id,
-                        cardId: card.Id
+                        cardId: card.Id,
+                        metadata: JsonSerializer.Serialize(metadata)
                     )
                 );
             }
+
+            card.Title = request.Title;
 
             CardContent? content = await dbContext.CardContents.FirstOrDefaultAsync(
                 c => c.CardId == card.Id,
