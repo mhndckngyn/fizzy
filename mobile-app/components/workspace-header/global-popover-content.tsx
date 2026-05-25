@@ -16,7 +16,24 @@ export default function GlobalPopoverContent() {
 
   return (
     <>
-      <Accordion defaultValue={["teams", "settings"]} type="multiple">
+      <Accordion defaultValue={["settings"]} type="multiple">
+        <AccordionSection value="settings" title="SETTINGS">
+          <YStack>
+            {/* <IconButton icon={Settings} label="App settings" /> */}
+            {/* <IconButton icon={UserRoundCog} label="User settings" /> */}
+            {teamId && (
+              <IconButton
+                onPress={() => router.push(`/teams/${teamId}/team-settings`)}
+                icon={Settings}
+                label="Team Settings"
+              ></IconButton>
+            )}
+            <IconButton onPress={signOut} icon={LogOut} label="Sign out" />
+          </YStack>
+        </AccordionSection>
+
+        <Separator marginVertical="$1" />
+
         <AccordionSection value="teams" title="MY TEAMS">
           <YStack>
             <IconButton
@@ -33,23 +50,6 @@ export default function GlobalPopoverContent() {
                 onPress={() => router.push(`/teams/${team.teamId}`)}
               />
             ))}
-          </YStack>
-        </AccordionSection>
-
-        <Separator marginVertical="$1" />
-
-        <AccordionSection value="settings" title="SETTINGS">
-          <YStack>
-            {/* <IconButton icon={Settings} label="App settings" /> */}
-            {/* <IconButton icon={UserRoundCog} label="User settings" /> */}
-            {teamId && (
-              <IconButton
-                onPress={() => router.push(`/teams/${teamId}/team-settings`)}
-                icon={Settings}
-                label="Team Settings"
-              ></IconButton>
-            )}
-            <IconButton onPress={signOut} icon={LogOut} label="Sign out" />
           </YStack>
         </AccordionSection>
       </Accordion>
