@@ -41,8 +41,8 @@ function TagPill({ title, color, onRemove }: TagPillProps) {
     <XStack
       ai="center"
       gap="$1.5"
-      px="$2"
-      py="$1"
+      px="$2.5"
+      py="$2"
       borderRadius={999}
       borderWidth={0.5}
       style={{
@@ -207,8 +207,8 @@ export function TagSection({
           <XStack
             ai="center"
             gap="$1"
-            px="$2"
-            py="$1"
+            px="$2.5"
+            py="$2"
             borderRadius={999}
             borderWidth={0.5}
             borderColor="$gray6"

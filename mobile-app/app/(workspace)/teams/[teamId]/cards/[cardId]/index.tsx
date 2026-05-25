@@ -2,7 +2,7 @@ import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useBoards } from "@/features/main/boards/use-boards";
 import { AssignCardSection } from "@/features/main/cards/components/assign-card-section";
-import CommentSection from "@/features/main/cards/components/card-details-page/comment-section";
+import ActivitySection from "@/features/main/cards/components/card-details-page/activity-section";
 import CardStaticView from "@/features/main/cards/components/card-details-page/static-view";
 import {
   BoardSelector,
@@ -37,6 +37,7 @@ import {
   Pin,
   PinOff,
   Save,
+  Tags,
   X,
   Star,
   StarOff,
@@ -516,7 +517,7 @@ export default function CardDetailPage() {
 
             {cardData && (
               <YStack pb="$5">
-                <CommentSection cardId={cardData.cardId} />
+                <ActivitySection cardId={cardData.cardId} />
               </YStack>
             )}
           </YStack>
