@@ -48,9 +48,12 @@ export function MultiSelectSheet<T extends string>({
 
   return (
     <Sheet
+      modal
       open={open}
       onOpenChange={(o: boolean) => !o && onClose()}
       snapPoints={[45]}
+      dismissOnSnapToBottom
+      zIndex={100000}
     >
       <Sheet.Overlay />
       <Sheet.Frame px="$4" pt="$4" pb="$8">
@@ -123,9 +126,12 @@ export function SortSheet({
 }) {
   return (
     <Sheet
+      modal
       open={open}
       onOpenChange={(o: boolean) => !o && onClose()}
       snapPoints={[35]}
+      dismissOnSnapToBottom
+      zIndex={100000}
     >
       <Sheet.Overlay />
       <Sheet.Frame px="$4" pt="$4" pb="$8">
@@ -180,9 +186,12 @@ export function BoardSheet({
 }) {
   return (
     <Sheet
+      modal
       open={open}
       onOpenChange={(o: boolean) => !o && onClose()}
       snapPoints={[50]}
+      dismissOnSnapToBottom
+      zIndex={100000}
     >
       <Sheet.Overlay />
       <Sheet.Frame px="$4" pt="$4" pb="$8">
