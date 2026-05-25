@@ -69,6 +69,8 @@ public static class CreateCard
                 .Select(t => t.CardsCount)
                 .FirstAsync(cancellationToken);
 
+            // TODO Check board exist
+
             Domain.Entities.Card card = new()
             {
                 No = (int)newNo,

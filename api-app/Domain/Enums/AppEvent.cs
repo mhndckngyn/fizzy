@@ -1,5 +1,6 @@
 namespace Domain.Enums;
 
+// TODO should be numbered
 public enum AppEvent
 {
     CardAssign,
