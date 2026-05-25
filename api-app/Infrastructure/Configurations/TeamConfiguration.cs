@@ -26,5 +26,7 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
             .HasMaxLength(14);
 
         builder.HasIndex(t => t.InvitationCode).IsUnique();
+
+        builder.Property(t => t.AutoClosePeriodDays).HasDefaultValue(30);
     }
 }

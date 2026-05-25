@@ -19,14 +19,16 @@ public class BoardWatcherStrategy(AppDbContext appDbContext) : INotificationStra
         AppEvent.CardResumed,
         AppEvent.CardColumnChange,
         AppEvent.CardTitleChanged,
+        AppEvent.CardAutoPostponed,
     ];
 
     public async Task<List<Guid>> GetMemberIdsToNotify(Event evnt)
     {
+        Guid? creatorId = evnt.CreatorMemberId;
         return await appDbContext
             .BoardAccesses.AsNoTracking()
             .Where(access =>
-                access.TeamId == evnt.TeamId && access.MemberId != evnt.CreatorMemberId
+                access.TeamId == evnt.TeamId && (creatorId == null || access.MemberId != creatorId)
             )
             .Where(access => access.BoardInvolvement == BoardInvolvement.Watching)
             .Select(access => access.MemberId)

@@ -17,7 +17,13 @@ public static class GetBoardsByTeam
 
     internal sealed record GetBoardsResponse(IEnumerable<BoardDto> Boards);
 
-    internal sealed record BoardDto(Guid BoardId, string Name, bool IsWatching);
+    internal sealed record BoardDto(
+        Guid BoardId,
+        string Name,
+        bool IsWatching,
+        int? AutoClosePeriodDays,
+        int TeamAutoClosePeriodDays
+    );
 
     internal class GetBoardsHandler(AppDbContext dbContext)
         : IRequestHandler<GetBoardsQuery, Result<GetBoardsResponse>>
@@ -41,7 +47,9 @@ public static class GetBoardsByTeam
                 .Select(ba => new BoardDto(
                     ba.BoardId,
                     ba.Board.Name,
-                    ba.BoardInvolvement == BoardInvolvement.Watching
+                    ba.BoardInvolvement == BoardInvolvement.Watching,
+                    ba.Board.AutoClosePeriodDays,
+                    ba.Board.Team.AutoClosePeriodDays
                 ))
                 .ToListAsync(cancellationToken);
 

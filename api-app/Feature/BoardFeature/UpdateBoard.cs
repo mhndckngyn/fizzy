@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Carter;
+using Domain.Constants;
 using Domain.Entities;
 using Feature.ApiResponses;
 using Feature.Extensions;
@@ -15,7 +16,8 @@ public static class UpdateBoard
     internal sealed record UpdateBoardRequest(
         string Name,
         bool AllAccess = false,
-        List<Guid>? RetainedMemberIds = null
+        List<Guid>? RetainedMemberIds = null,
+        int? AutoClosePeriodDays = null
     );
 
     internal sealed record UpdateBoardCommand(
@@ -24,7 +26,8 @@ public static class UpdateBoard
         Guid UserId,
         string Name,
         bool AllAccess,
-        List<Guid>? RetainedMemberIds
+        List<Guid>? RetainedMemberIds,
+        int? AutoClosePeriodDays
     ) : IRequest<Result<UpdateBoardResponse>>;
 
     internal sealed record UpdateBoardResponse(Guid BoardId, string Name, bool AllAccess);
@@ -58,6 +61,14 @@ public static class UpdateBoard
                     "Only Owners, Administrators, or the board creator can update board settings."
                 );
 
+            if (
+                request.AutoClosePeriodDays is not null
+                && !AutoClosePolicy.IsValidPeriod(request.AutoClosePeriodDays.Value)
+            )
+                return Result.Fail(
+                    $"Invalid AutoClosePeriodDays. Valid values: {string.Join(", ", AutoClosePolicy.ValidPeriodDays.Order())}."
+                );
+
             bool turningOnAllAccess = request.AllAccess && !board.AllAccess;
             bool turningOffAllAccess = !request.AllAccess && board.AllAccess;
 
@@ -69,6 +80,7 @@ public static class UpdateBoard
             {
                 board.Name = request.Name;
                 board.AllAccess = request.AllAccess;
+                board.AutoClosePeriodDays = request.AutoClosePeriodDays;
 
                 if (turningOnAllAccess)
                 {
@@ -173,7 +185,8 @@ public static class UpdateBoard
                             userId.Value,
                             request.Name,
                             request.AllAccess,
-                            request.RetainedMemberIds
+                            request.RetainedMemberIds,
+                            request.AutoClosePeriodDays
                         );
 
                         Result<UpdateBoardResponse> result = await sender.Send(command);

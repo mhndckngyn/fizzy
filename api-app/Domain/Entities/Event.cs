@@ -11,9 +11,13 @@ public partial class Event : BaseEntity
 
     public Team Team { get; set; } = null!;
 
-    public Guid CreatorMemberId { get; set; }
+    /// <summary>
+    /// The member who triggered this event.
+    /// null for system-generated events (e.g. CardAutoPostponed).
+    /// </summary>
+    public Guid? CreatorMemberId { get; set; }
 
-    public Member CreatorMember { get; set; } = null!;
+    public Member? CreatorMember { get; set; }
 
     public Guid CardId { get; set; }
 
@@ -24,7 +28,7 @@ public partial class Event : BaseEntity
     public Event(
         AppEvent appEventType,
         Guid teamId,
-        Guid creatorMemberId,
+        Guid? creatorMemberId,
         Guid cardId,
         string metadata = "{}"
     )

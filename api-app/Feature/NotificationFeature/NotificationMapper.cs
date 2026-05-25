@@ -28,7 +28,7 @@ public static class NotificationMapper
             n.TeamId,
             n.Event.Card.Title ?? "",
             GetNotificationDescription(n),
-            n.Event.CreatorMember.Name,
+            n.Event.CreatorMember?.Name ?? "System",
             n.Event.Card.Id,
             n.Event.Card.No,
             n.Event.Card.Board.Name,
@@ -40,7 +40,7 @@ public static class NotificationMapper
 
     public static string GetNotificationDescription(Notification n)
     {
-        string creator = n.Event.CreatorMember.Name;
+        string creator = n.Event.CreatorMember?.Name ?? "System";
         return n.Event.AppEventType switch
         {
             AppEvent.CardCreate => $"Added by {creator}",
@@ -56,6 +56,7 @@ public static class NotificationMapper
             AppEvent.CardAssign => $"Assigned to {n.RecipientMember.Name}",
             AppEvent.CommentCreate => $"Comment added by {creator}",
             AppEvent.Mention => $"{creator} mentioned you",
+            AppEvent.CardAutoPostponed => "Moved to Not Now due to inactivity",
             _ => $"A change was made to this card",
         };
     }

@@ -15,7 +15,9 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder
             .HasOne(e => e.CreatorMember)
             .WithMany(m => m.Events)
-            .HasForeignKey(e => e.CreatorMemberId);
+            .HasForeignKey(e => e.CreatorMemberId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(e => e.Team).WithMany(t => t.Events).HasForeignKey(e => e.TeamId);
 

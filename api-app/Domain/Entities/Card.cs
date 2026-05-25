@@ -16,6 +16,15 @@ public class Card : BaseEntity
     public Guid? ColumnId { get; set; }
     public Column? Column { get; set; }
 
+    /// <summary>
+    /// Tracks the last time a meaningful user action occurred on this card,
+    /// governing the entropy (auto-postpone) lifecycle.
+    /// Updated on: creation, comments, assignments, status/stage moves, title changes.
+    /// NOT updated on: description edits, mentions.
+    /// Initialized to UTC now so card creation itself counts as the first activity.
+    /// </summary>
+    public DateTime LastActiveAt { get; set; } = DateTime.UtcNow;
+
     // Trạng thái
     public CardNotNow? NotNow { get; set; }
     public CardMaybe? Maybe { get; set; }
@@ -76,6 +85,17 @@ public class Card : BaseEntity
         ClearAllStates();
         Done = new CardDone { CardId = this.Id, BoardId = this.BoardId };
         return Result.Ok(Done);
+    }
+
+    /// <summary>
+    /// Refreshes LastActiveAt to now, resetting the card's entropy clock.
+    /// Call this on any action that counts as user activity:
+    /// comments, assignment toggles, status/stage moves, title changes.
+    /// Do NOT call for description edits or mentions.
+    /// </summary>
+    public void Touch()
+    {
+        LastActiveAt = DateTime.UtcNow;
     }
 
     /// <summary>

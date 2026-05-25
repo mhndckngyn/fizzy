@@ -85,6 +85,8 @@ public static class MoveCardToMaybe
 
                 dbContext.Events.Add(moveToMaybeEvent);
 
+                card.Touch();
+
                 await dbContext
                     .CardNotNows.Where(c => c.CardId == request.CardId)
                     .ExecuteDeleteAsync(cancellationToken);

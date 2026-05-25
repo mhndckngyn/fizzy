@@ -16,4 +16,5 @@ public enum AppEvent
     CardResumed,
     CardColumnChange,
     CardTitleChanged,
+    CardAutoPostponed,
 }
