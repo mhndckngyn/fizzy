@@ -1,4 +1,5 @@
 using Carter;
+using Feature.AutoCloseFeature;
 using Feature.Hubs;
 using Feature.Middlewares;
 using Feature.NotificationFeature.NotificationProcessor;
@@ -95,6 +96,8 @@ builder.Services.AddScoped<INotificationStrategy, BoardWatcherStrategy>();
 builder.Services.AddScoped<INotificationStrategy, CommentStrategy>();
 builder.Services.AddScoped<INotificationStrategy, MentionStrategy>();
 
+builder.Services.AddScoped<IAutoCloseJob, AutoCloseJob>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -114,6 +117,8 @@ app.UseAuthorization();
 app.UseMiddleware<UserProvisioner>();
 
 app.UseHangfireDashboard("/hangfire");
+
+RecurringJob.AddOrUpdate<IAutoCloseJob>("auto-close-cards", job => job.RunAsync(), Cron.Hourly());
 
 app.MapCarter();
 app.MapHub<NotificationHub>("/hubs/notifications").RequireAuthorization();
