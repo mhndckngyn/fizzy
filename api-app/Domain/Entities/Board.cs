@@ -15,6 +15,12 @@ public class Board : BaseEntity
 
     public ICollection<BoardAccess> BoardAccesses { get; set; } = new List<BoardAccess>();
 
+    /// <summary>
+    /// Board-level override for the auto-close period in days.
+    /// null = inherit from the team's AutoClosePeriodDays.
+    /// </summary>
+    public int? AutoClosePeriodDays { get; set; }
+
     public bool CanBeUpdatedBy(Member member) =>
         member.Role is TeamRole.Owner or TeamRole.Administrator || CreatorMemberId == member.Id;
 }

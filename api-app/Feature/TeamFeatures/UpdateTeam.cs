@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Carter;
+using Domain.Constants;
 using Domain.Enums;
 using Feature.Extensions;
 using FluentResults;
@@ -11,10 +12,14 @@ namespace Feature.TeamFeatures;
 
 public static class UpdateTeam
 {
-    internal sealed record UpdateTeamRequest(string Name);
+    internal sealed record UpdateTeamRequest(string Name, int? AutoClosePeriodDays);
 
-    internal sealed record UpdateTeamCommand(Guid TeamId, Guid UserId, string Name)
-        : IRequest<Result>;
+    internal sealed record UpdateTeamCommand(
+        Guid TeamId,
+        Guid UserId,
+        string Name,
+        int? AutoClosePeriodDays
+    ) : IRequest<Result>;
 
     internal class UpdateTeamHandler(AppDbContext dbContext)
         : IRequestHandler<UpdateTeamCommand, Result>
@@ -35,10 +40,18 @@ public static class UpdateTeam
             if (member.Role is not (TeamRole.Owner or TeamRole.Administrator))
                 return Result.Fail("Only Owners and Administrators can update team settings.");
 
+            int periodDays = request.AutoClosePeriodDays ?? 30;
+            if (!AutoClosePolicy.IsValidPeriod(periodDays))
+                return Result.Fail(
+                    $"Invalid AutoClosePeriodDays. Valid values: {string.Join(", ", AutoClosePolicy.ValidPeriodDays.Order())}."
+                );
+
             await dbContext
                 .Teams.Where(t => t.Id == request.TeamId)
                 .ExecuteUpdateAsync(
-                    s => s.SetProperty(t => t.Name, request.Name),
+                    s =>
+                        s.SetProperty(t => t.Name, request.Name)
+                            .SetProperty(t => t.AutoClosePeriodDays, periodDays),
                     cancellationToken
                 );
 
@@ -64,7 +77,12 @@ public static class UpdateTeam
                             return Results.Unauthorized();
 
                         var result = await sender.Send(
-                            new UpdateTeamCommand(teamId, userId.Value, request.Name)
+                            new UpdateTeamCommand(
+                                teamId,
+                                userId.Value,
+                                request.Name,
+                                request.AutoClosePeriodDays
+                            )
                         );
 
                         return result.ToNoContentMinimalApiResult();
