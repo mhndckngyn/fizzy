@@ -76,6 +76,8 @@ public static class UpdateCard
                         metadata: JsonSerializer.Serialize(metadata)
                     )
                 );
+
+                card.Touch();
             }
 
             card.Title = request.Title;

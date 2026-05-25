@@ -51,6 +51,14 @@ public static class UnassignCard
             if (assignment is null)
                 return Result.Fail("Assignment not found.");
 
+            var card = await dbContext.Cards.FirstOrDefaultAsync(
+                c => c.Id == request.CardId,
+                cancellationToken
+            );
+
+            if (card is null)
+                return Result.Fail("Card not found.");
+
             dbContext.CardAssignments.Remove(assignment);
 
             dbContext.Events.Add(
@@ -67,6 +75,8 @@ public static class UnassignCard
                     )
                 )
             );
+
+            card.Touch();
 
             await dbContext.SaveChangesAsync(cancellationToken);
 

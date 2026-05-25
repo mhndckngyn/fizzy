@@ -51,12 +51,12 @@ public static class AssignCard
                 return Result.Fail("You are not a member of this board.");
 
             // Card phải thuộc board
-            bool cardExists = await dbContext.Cards.AnyAsync(
+            var card = await dbContext.Cards.FirstOrDefaultAsync(
                 c => c.Id == request.CardId && c.BoardId == request.BoardId,
                 cancellationToken
             );
 
-            if (!cardExists)
+            if (card is null)
                 return Result.Fail("Card not found in this board.");
 
             // Assignee phải là member của cùng team
@@ -108,6 +108,8 @@ public static class AssignCard
                 dbContext.CardWatches.Add(
                     new CardWatch(requester.TeamId, request.CardId, request.AssigneeMemberId)
                 );
+
+            card.Touch();
 
             await dbContext.SaveChangesAsync(cancellationToken);
 

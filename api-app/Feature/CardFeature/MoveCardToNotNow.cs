@@ -104,6 +104,8 @@ public static class MoveCardToNotNow
                     )
                 );
 
+                card.Touch();
+
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 

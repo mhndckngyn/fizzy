@@ -37,12 +37,12 @@ public static class CreateComment
             if (member is null)
                 return Result.Fail("You are not a member of this team.");
 
-            bool cardExists = await dbContext.Cards.AnyAsync(
+            var card = await dbContext.Cards.FirstOrDefaultAsync(
                 c => c.Id == request.CardId && c.TeamId == request.TeamId,
                 cancellationToken
             );
 
-            if (!cardExists)
+            if (card is null)
                 return Result.Fail("Card not found.");
 
             var comment = new Comment
@@ -68,6 +68,8 @@ public static class CreateComment
 
             if (!alreadyHasWatchRecord)
                 dbContext.CardWatches.Add(new CardWatch(request.TeamId, request.CardId, member.Id));
+
+            card.Touch();
 
             await dbContext.SaveChangesAsync(cancellationToken);
 

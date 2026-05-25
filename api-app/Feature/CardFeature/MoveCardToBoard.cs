@@ -71,7 +71,8 @@ public static class MoveCardToBoard
                     .ExecuteUpdateAsync(
                         s =>
                             s.SetProperty(c => c.BoardId, request.TargetBoardId)
-                                .SetProperty(c => c.ColumnId, (Guid?)null),
+                                .SetProperty(c => c.ColumnId, (Guid?)null)
+                                .SetProperty(c => c.LastActiveAt, DateTime.UtcNow),
                         cancellationToken
                     );
 

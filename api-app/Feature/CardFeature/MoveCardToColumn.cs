@@ -153,6 +153,8 @@ public static class MoveCardToColumn
                     );
                 }
 
+                card.Touch();
+
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 

@@ -104,6 +104,8 @@ public static class MoveCardToDone
 
                 dbContext.Events.Add(doneEvent);
 
+                card.Touch();
+
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
