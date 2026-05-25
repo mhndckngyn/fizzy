@@ -97,7 +97,7 @@ public static class GetCardEvents
 
         private static string GetTitle(Event e, IDictionary<Guid, string> nameMap)
         {
-            string creator = e.CreatorMember.Name;
+            string creator = e.CreatorMember?.Name ?? "System";
             return e.AppEventType switch
             {
                 AppEvent.CardAssign => AssignTitle(e, creator, nameMap),
@@ -105,6 +105,7 @@ public static class GetCardEvents
                 AppEvent.CardDone => $"Moved to \"Done\" by {creator}",
                 AppEvent.CardReopened => $"Reopened by {creator}",
                 AppEvent.CardPostponed => $"{creator} moved this to \"Not Now\"",
+                AppEvent.CardAutoPostponed => "Moved to Not Now due to inactivity",
                 AppEvent.CardTitleChanged => TitleChangedTitle(e, creator),
                 AppEvent.CardBoardChange => BoardChangedTitle(e, creator),
                 AppEvent.CardColumnChange => ColumnChangedTitle(e, creator),

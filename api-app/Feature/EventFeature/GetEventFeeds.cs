@@ -65,7 +65,9 @@ public static class GetEventFeeds
 
             if (request.MemberIds is { Length: > 0 })
             {
-                query = query.Where(e => request.MemberIds.Contains(e.CreatorMemberId));
+                query = query.Where(e =>
+                    e.CreatorMemberId != null && request.MemberIds.Contains(e.CreatorMemberId.Value)
+                );
             }
 
             var boardAccessQuery = dbContext
@@ -117,7 +119,11 @@ public static class GetEventFeeds
                 .Where(e => e.CreatedAt < startOfDay)
                 .Where(e => boardAccessQuery.Contains(e.Card.BoardId))
                 .Where(e =>
-                    request.MemberIds.Length == 0 || request.MemberIds.Contains(e.CreatorMemberId)
+                    request.MemberIds.Length == 0
+                    || (
+                        e.CreatorMemberId != null
+                        && request.MemberIds.Contains(e.CreatorMemberId.Value)
+                    )
                 )
                 .Select(e => (DateTime?)e.CreatedAt)
                 .FirstOrDefaultAsync(cancellationToken);

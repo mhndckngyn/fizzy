@@ -39,7 +39,7 @@ public static class FeedEventMapper
             e.Card.No,
             GetEventTitle(e, requesterMemberId, nameMap),
             e.Card.Board.Name,
-            e.CreatorMember.Name,
+            e.CreatorMember?.Name ?? "System",
             e.Card.Column?.Color,
             e.CreatedAt,
             ToFeedEventType(e.AppEventType)
@@ -51,8 +51,13 @@ public static class FeedEventMapper
         IDictionary<Guid, string> nameMap
     )
     {
-        string creator = e.CreatorMemberId == requesterMemberId ? "You" : e.CreatorMember.Name;
         string cardTitle = e.Card.Title ?? "a card";
+
+        if (e.AppEventType == AppEvent.CardAutoPostponed)
+            return $"Moved {cardTitle} to 'Not Now' due to inactivity";
+
+        string creator =
+            e.CreatorMemberId == requesterMemberId ? "You" : (e.CreatorMember?.Name ?? "System");
         return e.AppEventType switch
         {
             AppEvent.CardCreate => $"{creator} added {cardTitle}",
