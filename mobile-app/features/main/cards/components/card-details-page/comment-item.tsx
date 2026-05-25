@@ -4,20 +4,11 @@ import { useDeleteComment } from "@/features/main/comments/use-delete-comment";
 import { useEditComment } from "@/features/main/comments/use-edit-comment";
 import React, { useState } from "react";
 
-import { getInitials } from "@/features/main/_shared/helpers";
+import { getInitials, getLightTint } from "@/features/main/_shared/helpers";
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { Edit3, Trash2 } from "@tamagui/lucide-icons-2";
 import { format } from "date-fns";
-import {
-  Avatar,
-  Button,
-  Text,
-  TextArea,
-  Theme,
-  View,
-  XStack,
-  YStack,
-} from "tamagui";
+import { Avatar, Button, Text, TextArea, View, XStack, YStack } from "tamagui";
 
 type CommentItemProps = {
   comment: Comment;
@@ -55,7 +46,7 @@ export default function CommentItem({ comment, cardId }: CommentItemProps) {
   return (
     <XStack alignItems="flex-start">
       {/* Avatar Container - sits "above" the box */}
-      <View>
+      <View paddingTop="$2.5">
         <Avatar
           circular
           size="$3.5"
@@ -74,19 +65,22 @@ export default function CommentItem({ comment, cardId }: CommentItemProps) {
       {/* Content Box */}
       <YStack
         flex={1}
+        paddingTop="$2.5"
         paddingBottom="$2.5"
         paddingRight="$2"
         paddingLeft="$6" // Extra padding to clear the overlapping avatar
         marginLeft="$-4" // Negative margin to pull the box under the avatar
         gap="$1"
+        backgroundColor="$gray3"
+        borderRadius="$5"
       >
         <XStack justifyContent="space-between" alignItems="center">
           <YStack gap={"$1"}>
             <Text fontWeight="bold" theme="blue" fontSize="$5" color="$color">
               {comment.creatorName}
             </Text>
-            <Text color="$gray10" fontSize="$4">
-              {format(new Date(comment.createdAt), "eeee, h:mm a")}
+            <Text color="$gray10" fontSize="$3">
+              {format(new Date(comment.createdAt), "EEE, MMM d, h:mm a")}
             </Text>
           </YStack>
 
@@ -105,29 +99,27 @@ export default function CommentItem({ comment, cardId }: CommentItemProps) {
 
         {mode === "view" ? (
           <View mt="$2">
-            <Text fontSize="$5" lineHeight="$5">
+            <Text fontSize="$4" lineHeight="$5">
               {comment.body}
             </Text>
           </View>
         ) : (
-          <YStack gap="$2.5" mt="$2">
+          <YStack gap="$3" mt="$2.5">
             <TextArea
               value={editedBody}
               onChangeText={setEditedBody}
               borderWidth={1}
-              fontSize="$5"
-              backgroundColor="$background"
+              fontSize="$4"
               focusStyle={{ borderColor: "$blue10" }}
             />
             <XStack justifyContent="space-between" alignItems="center">
-              <Theme name="red">
-                <Button
-                  size="$3"
-                  circular
-                  icon={Trash2}
-                  onPress={() => setConfirmDeleteDialogOpen(true)}
-                />
-              </Theme>
+              <Button
+                size="$3"
+                circular
+                icon={Trash2}
+                onPress={() => setConfirmDeleteDialogOpen(true)}
+                backgroundColor={getLightTint("#fa2c2c", 0.7)}
+              />
 
               <XStack gap="$2">
                 <Button

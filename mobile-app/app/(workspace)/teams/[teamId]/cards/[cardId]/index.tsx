@@ -2,7 +2,7 @@ import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useBoards } from "@/features/main/boards/use-boards";
 import { AssignCardSection } from "@/features/main/cards/components/assign-card-section";
-import CommentSection from "@/features/main/cards/components/card-details-page/comment-section";
+import ActivitySection from "@/features/main/cards/components/card-details-page/activity-section";
 import CardStaticView from "@/features/main/cards/components/card-details-page/static-view";
 import {
   BoardSelector,
@@ -37,6 +37,7 @@ import {
   Pin,
   PinOff,
   Save,
+  Tags,
   X,
 } from "@tamagui/lucide-icons-2";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -381,9 +382,18 @@ export default function CardDetailPage() {
             </Card>
 
             <Card padding="$3" backgroundColor={bgColor}>
-              <Text fontSize={13} color="$gray10" fontWeight="500" mb="$2">
-                Tags
-              </Text>
+              <XStack ai="center" gap="$2" opacity={0.5} mb="$2">
+                <Tags size={14} color="$color" />
+                <Text
+                  fontSize={11}
+                  textTransform="uppercase"
+                  fontWeight="700"
+                  letterSpacing={1}
+                >
+                  Tags
+                </Text>
+              </XStack>
+
               <TagSection
                 teamId={teamId}
                 boardId={boardId}
@@ -495,7 +505,7 @@ export default function CardDetailPage() {
 
             {cardData && (
               <YStack pb="$5">
-                <CommentSection cardId={cardData.cardId} />
+                <ActivitySection cardId={cardData.cardId} />
               </YStack>
             )}
           </YStack>
