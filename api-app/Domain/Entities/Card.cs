@@ -20,6 +20,7 @@ public class Card : BaseEntity
     public CardNotNow? NotNow { get; set; }
     public CardMaybe? Maybe { get; set; }
     public CardDone? Done { get; set; }
+    public CardGolden? Golden { get; set; }
 
     // Nội dung
     public CardContent? Content { get; set; }

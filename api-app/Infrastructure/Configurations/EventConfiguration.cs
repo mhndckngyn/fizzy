@@ -24,5 +24,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.AppEventType).HasConversion<string>().HasMaxLength(50);
 
         builder.Property(e => e.Metadata).IsRequired().HasDefaultValue("{}");
+
+        builder.HasIndex(e => new { e.TeamId, e.CreatedAt });
     }
 }

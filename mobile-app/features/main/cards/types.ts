@@ -33,6 +33,7 @@ export interface CardDetail {
   assignments: CardAssignee[];
   isWatching: boolean;
   tags: { tagId: string; title: string; color: string }[];
+  isGolden: boolean;
 }
 
 export type CardMention = Pick<Card, "cardId" | "no" | "title">;

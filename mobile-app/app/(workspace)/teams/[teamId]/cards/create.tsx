@@ -7,6 +7,7 @@ import {
   CardTitleInput,
   MemberAssignSelector,
 } from "@/features/main/cards/components/card-form-components";
+import { TagPickerSection } from "@/features/main/tags/components/tag-picker-section";
 import { useCardMention } from "@/features/main/cards/use-card-mention";
 import { useCreateCard } from "@/features/main/cards/use-create-card";
 import { useMembers } from "@/features/main/members/use-members";
@@ -29,6 +30,7 @@ export default function CreateCardPage() {
   const [description, setDescription] = useState("");
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
   const [assignedMembers, setAssignedMembers] = useState<string[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const { teamId } = useCurrentTeamParams();
   const { mutateAsync: createCard, isPending } = useCreateCard();
@@ -48,6 +50,12 @@ export default function CreateCardPage() {
   const toggleMember = (id: string) => {
     setAssignedMembers((prev) =>
       prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+    );
+  };
+
+  const toggleTag = (id: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id],
     );
   };
 
@@ -74,6 +82,7 @@ export default function CreateCardPage() {
         body: description || undefined,
         assignedMemberIds:
           assignedMembers.length > 0 ? assignedMembers : undefined,
+        tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
       });
 
       if (addAnother) {
@@ -102,6 +111,14 @@ export default function CreateCardPage() {
               onContentChange={(html) => setDescription(html)}
               memberList={memberMentionList}
               cardList={cardMentionList}
+            />
+          </Card>
+
+          <Card padding="$3" bg={bgColor}>
+            <TagPickerSection
+              teamId={teamId}
+              selectedTagIds={selectedTagIds}
+              onToggle={toggleTag}
             />
           </Card>
 

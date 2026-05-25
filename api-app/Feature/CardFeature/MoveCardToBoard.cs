@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Carter;
+using Domain.AppEventMetadata;
 using Domain.Entities;
 using Domain.Enums;
 using Feature.ApiResponses;
@@ -9,7 +11,7 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.CardFeatures;
+namespace Feature.CardFeature;
 
 public static class MoveCardToBoard
 {
@@ -35,30 +37,32 @@ public static class MoveCardToBoard
             );
             try
             {
-                var cardInfo = await dbContext
+                Domain.Entities.Card? card = await dbContext
                     .Cards.Where(c => c.Id == request.CardId && c.BoardId == request.CurrentBoardId)
-                    .Select(c => new { c.Id, c.TeamId })
+                    .Include(c => c.Board)
                     .FirstOrDefaultAsync(cancellationToken);
 
-                if (cardInfo is null)
+                if (card is null)
                     return Result.Fail("Card not found in this board.");
 
                 // TODO when we take teamId, we should also move this check up
                 Member? member = await dbContext.Members.FirstOrDefaultAsync(
-                    m => m.UserId == request.UserId && m.TeamId == cardInfo.TeamId,
+                    m => m.UserId == request.UserId && m.TeamId == card.TeamId,
                     cancellationToken
                 );
 
                 if (member is null)
                     return Result.Fail("You are not a member of this team.");
 
-                bool targetBoardExists = await dbContext.Boards.AnyAsync(
-                    b => b.Id == request.TargetBoardId && b.TeamId == cardInfo.TeamId,
+                Board? targetBoard = await dbContext.Boards.FirstOrDefaultAsync(
+                    b => b.Id == request.TargetBoardId && b.TeamId == card.TeamId,
                     cancellationToken
                 );
 
-                if (!targetBoardExists)
+                if (targetBoard is null)
                     return Result.Fail("Target board not found in this team.");
+
+                string originalBoardName = card.Board.Name;
 
                 // Cập nhật BoardId + xóa ColumnId (card.ColumnId là FK trực tiếp)
                 // Dùng ExecuteUpdate để atomic
@@ -102,11 +106,20 @@ public static class MoveCardToBoard
                     new CardMaybe { CardId = request.CardId, BoardId = request.TargetBoardId }
                 );
 
+                string boardMetadata = JsonSerializer.Serialize(
+                    new CardMoveBoardMetadata
+                    {
+                        OriginalBoardName = originalBoardName,
+                        DestinationBoardName = targetBoard.Name,
+                    }
+                );
+
                 Event cardBoardChangeEvent = new(
                     appEventType: AppEvent.CardBoardChange,
-                    teamId: cardInfo.TeamId,
+                    teamId: card.TeamId,
                     creatorMemberId: member.Id,
-                    cardId: cardInfo.Id
+                    cardId: card.Id,
+                    metadata: boardMetadata
                 );
 
                 dbContext.Events.Add(cardBoardChangeEvent);

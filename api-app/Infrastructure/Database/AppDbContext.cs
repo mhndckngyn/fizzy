@@ -26,6 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<CardTag> CardTags => Set<CardTag>();
+    public DbSet<CardGolden> CardGoldnesses => Set<CardGolden>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

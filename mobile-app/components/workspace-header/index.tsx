@@ -45,9 +45,10 @@ export default function WorkspaceHeader() {
           <Popover.Trigger asChild>
             <Button
               chromeless
-              paddingHorizontal="$2"
+              paddingHorizontal="$4"
               height={50}
               hoverStyle={{ backgroundColor: "$backgroundHover" }}
+              borderRadius="$10"
             >
               <XStack alignItems="center" gap="$3">
                 <FizzyLogo size={32} />

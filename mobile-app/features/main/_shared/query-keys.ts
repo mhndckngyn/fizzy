@@ -7,6 +7,19 @@ export const queryKeys = {
 
   teamNotifications: (teamId: string) => ["notifications", teamId],
 
+  teamFeeds: (
+    teamId: string,
+    params: { boardIds: string[]; memberIds: string[] },
+  ) => [
+    "teams",
+    teamId,
+    "feeds",
+    {
+      boardIds: [...params.boardIds].sort(),
+      memberIds: [...params.memberIds].sort(),
+    },
+  ],
+
   boards: (teamId: string) => ["teams", teamId, "boards", "list"] as const,
 
   boardAccesses: (teamId: string, boardId: string) =>
@@ -31,6 +44,9 @@ export const queryKeys = {
 
   invitationCode: (teamId: string) =>
     ["teams", teamId, "invitation-code"] as const,
+
+  cardEvents: (teamId: string, cardId: string) =>
+    ["teams", teamId, "cards", cardId, "events"] as const,
 
   comments: (teamId: string, cardId: string) =>
     ["teams", teamId, "cards", cardId, "comments"] as const,
