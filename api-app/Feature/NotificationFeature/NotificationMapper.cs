@@ -52,7 +52,7 @@ public static class NotificationMapper
             AppEvent.CardColumnChange => $"Moved to {ColumnName(n.Event)} by {creator}",
             AppEvent.CardBoardChange => $"Changed board by {creator}",
             AppEvent.CardTitleChanged => $"Renamed by {creator}",
-            AppEvent.CardUnassign => $"{UnassignedName(n.Event)} unassigned by {creator}",
+            AppEvent.CardUnassign => $"Unassigned by {creator}",
             AppEvent.CardAssign => $"Assigned to {n.RecipientMember.Name}",
             AppEvent.CommentCreate => $"Comment added by {creator}",
             AppEvent.Mention => $"{creator} mentioned you",
@@ -62,7 +62,4 @@ public static class NotificationMapper
 
     private static string ColumnName(Event e) =>
         e.GetMetadata<CardMoveToColumnMetadata>()?.ColumnName ?? "a column";
-
-    private static string UnassignedName(Event e) =>
-        e.GetMetadata<CardUnassignMetadata>()?.UnassignedMemberName ?? "A member";
 }

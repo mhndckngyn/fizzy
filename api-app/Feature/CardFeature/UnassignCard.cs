@@ -51,11 +51,6 @@ public static class UnassignCard
             if (assignment is null)
                 return Result.Fail("Assignment not found.");
 
-            Member? assignee = await dbContext.Members.FirstOrDefaultAsync(
-                m => m.Id == request.AssigneeMemberId,
-                cancellationToken
-            );
-
             dbContext.CardAssignments.Remove(assignment);
 
             dbContext.Events.Add(
@@ -65,7 +60,10 @@ public static class UnassignCard
                     creatorMemberId: requester.Id,
                     cardId: request.CardId,
                     metadata: JsonSerializer.Serialize(
-                        new CardUnassignMetadata { UnassignedMemberName = assignee?.Name ?? "" }
+                        new CardUnassignMetadata
+                        {
+                            UnassignedMemberId = assignment.AssigneeMemberId,
+                        }
                     )
                 )
             );
