@@ -24,24 +24,26 @@ import {
   useMoveCardToColumn,
   useMoveCardToSpecialColumn,
 } from "@/features/main/cards/use-move-card";
+import { useSetCardWatch } from "@/features/main/cards/use-set-card-watch";
+import { useToggleCardGolden } from "@/features/main/cards/use-toggle-card-golden";
 import { useUpdateCard } from "@/features/main/cards/use-update-card";
 import { useColumnsbyBoardId } from "@/features/main/columns/use-get-columns";
 import { useMemberMention } from "@/features/main/members/use-member-mention";
 import { useMembers } from "@/features/main/members/use-members";
-import { useTogglePin, usePinnedCards } from "@/features/main/pins/use-pins";
-import { useSetCardWatch } from "@/features/main/cards/use-set-card-watch";
+import { usePinnedCards, useTogglePin } from "@/features/main/pins/use-pins";
+import { TagSection } from "@/features/main/tags/components/tag-section";
 import {
   ArrowLeft,
   Bell,
   BellOff,
+  Clock,
   Pin,
   PinOff,
   Save,
-  Tags,
-  X,
   Star,
-  StarOff,
+  X,
 } from "@tamagui/lucide-icons-2";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
@@ -58,8 +60,6 @@ import {
   YStack,
   ZStack,
 } from "tamagui";
-import { TagSection } from "@/features/main/tags/components/tag-section";
-import { useToggleCardGolden } from "@/features/main/cards/use-toggle-card-golden";
 
 const showToast = (message: string, type: "success" | "error") => {
   if (type === "error") {
@@ -455,6 +455,48 @@ export default function CardDetailPage() {
               />
             </Card>
 
+            {/* AUTO-CLOSE INFO */}
+            {cardData.autoClosePeriodDays > 0 &&
+              (() => {
+                const lastActiveDate = parseISO(cardData.lastActiveAt);
+                const daysInactive = differenceInCalendarDays(
+                  new Date(),
+                  lastActiveDate,
+                );
+                const daysLeft = cardData.autoClosePeriodDays - daysInactive;
+                const isNotNow = currentTarget?.type === "not-now";
+                const showCountdown = !isNotNow && daysLeft > 0;
+                const lastActiveLabel = format(lastActiveDate, "EEEE, MMM d");
+                return (
+                  <YStack
+                    gap="$1.5"
+                    ai="center"
+                    paddingHorizontal="$3"
+                    paddingVertical="$2"
+                    backgroundColor={`${columnColor}15`}
+                    borderRadius="$3"
+                  >
+                    {showCountdown && (
+                      <XStack ai="center" gap="$2">
+                        <Clock size={14} color={columnColor} />
+                        <Text
+                          fontSize="$3"
+                          color={columnColor}
+                          fontWeight="600"
+                        >
+                          Moves to &quot;Not Now&quot; in {daysLeft} day
+                          {daysLeft !== 1 ? "s" : ""} if there&apos;s no
+                          activity
+                        </Text>
+                      </XStack>
+                    )}
+                    <Text fontSize="$3" color={columnColor} opacity={0.75}>
+                      Last activity: {lastActiveLabel}
+                    </Text>
+                  </YStack>
+                );
+              })()}
+
             {/* ACTION BUTTONS */}
             <XStack jc="center">
               <XStack
@@ -465,7 +507,7 @@ export default function CardDetailPage() {
                 paddingHorizontal="$3"
                 borderRadius="$8"
                 borderColor={`${columnColor}40`}
-                borderWidth={2}
+                borderWidth={1}
               >
                 {/* Golden */}
                 <XStack
@@ -476,11 +518,11 @@ export default function CardDetailPage() {
                   pressStyle={{ opacity: 0.6 }}
                   opacity={isPendingGolden ? 0.5 : 1}
                 >
-                  {isGolden ? (
-                    <StarOff size={22} color="#586e8c" />
-                  ) : (
-                    <Star size={22} color="$gray8" />
-                  )}
+                  <Star
+                    size={22}
+                    color={isGolden ? "#efbb00" : "$gray8"}
+                    fill={isGolden ? "#efbb00" : "none"}
+                  />
                 </XStack>
 
                 <XStack
