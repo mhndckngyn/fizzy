@@ -14,8 +14,9 @@ export function BoardNameSection({ canEdit }: { canEdit: boolean }) {
   const { data } = useBoards();
   const { mutate, isPending } = useUpdateBoard();
 
-  const currentName =
-    data?.boards.find((b) => b.boardId === boardId)?.name ?? "";
+  const board = data?.boards.find((b) => b.boardId === boardId);
+  const currentName = board?.name ?? "";
+  const currentPeriod = board?.autoClosePeriodDays;
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -36,7 +37,7 @@ export function BoardNameSection({ canEdit }: { canEdit: boolean }) {
       return;
     }
     mutate(
-      { teamId, boardId, name: trimmed },
+      { teamId, boardId, name: trimmed, autoClosePeriodDays: currentPeriod },
       { onSuccess: () => setEditing(false) },
     );
   }

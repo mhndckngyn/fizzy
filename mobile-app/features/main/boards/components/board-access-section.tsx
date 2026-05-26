@@ -80,8 +80,9 @@ export function BoardAccessSection({ canEdit }: { canEdit: boolean }) {
   }
 
   function handleSave() {
-    const currentName =
-      boardsQuery?.boards.find((b) => b.boardId === boardId)?.name ?? "";
+    const currentBoard = boardsQuery?.boards.find((b) => b.boardId === boardId);
+    const currentName = currentBoard?.name ?? "";
+    const currentPeriod = currentBoard?.autoClosePeriodDays;
 
     const retainedMemberIds = Object.entries(memberStates)
       .filter(([, v]) => v)
@@ -93,6 +94,7 @@ export function BoardAccessSection({ canEdit }: { canEdit: boolean }) {
       name: currentName,
       allAccess,
       retainedMemberIds,
+      autoClosePeriodDays: currentPeriod,
     });
   }
 
