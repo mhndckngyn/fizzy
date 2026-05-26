@@ -8,6 +8,7 @@ type UpdateBoardRequest = {
   name: string;
   allAccess?: boolean;
   retainedMemberIds?: string[];
+  autoClosePeriodDays?: number | null;
 };
 
 async function updateBoard({
@@ -16,11 +17,13 @@ async function updateBoard({
   name,
   allAccess,
   retainedMemberIds,
+  autoClosePeriodDays,
 }: UpdateBoardRequest) {
   await axiosInstance.put(`/api/teams/${teamId}/boards/${boardId}`, {
     name,
     allAccess,
     retainedMemberIds,
+    autoClosePeriodDays,
   });
 }
 

@@ -1,5 +1,6 @@
 import { useHeaderStore } from "@/components/workspace-header/use-header-store";
 import { useCurrentMemberStore } from "@/features/main/members/use-current-member-store";
+import { AutoClosePeriodSection } from "@/features/main/team-settings/components/auto-close-period-section";
 import { MembersSection } from "@/features/main/team-settings/components/members-section";
 import { TeamNameSection } from "@/features/main/team-settings/components/team-name-section";
 import { ArrowLeft } from "@tamagui/lucide-icons-2";
@@ -37,6 +38,8 @@ export default function TeamSettingsScreen() {
           <TeamNameSection canEdit={canManageTeam} />
           <Separator borderColor="$gray4" />
           <MembersSection />
+          <Separator borderColor="$gray4" />
+          <AutoClosePeriodSection canEdit={canManageTeam} />
         </YStack>
       </ScrollView>
     </YStack>

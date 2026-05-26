@@ -4,6 +4,7 @@ import {
   useCurrentTeamParams,
 } from "@/features/main/_shared/hooks";
 import { BoardAccessSection } from "@/features/main/boards/components/board-access-section";
+import { BoardAutoClosePeriodSection } from "@/features/main/boards/components/board-auto-close-period-section";
 import { BoardNameSection } from "@/features/main/boards/components/board-name-section";
 import { useBoardAccesses } from "@/features/main/boards/use-board-accesses";
 import { ArrowLeft } from "@tamagui/lucide-icons-2";
@@ -44,6 +45,8 @@ export default function BoardSettingsScreen() {
           <BoardNameSection canEdit={canEdit} />
           <Separator borderColor="$gray4" />
           <BoardAccessSection canEdit={canEdit} />
+          <Separator borderColor="$gray4" />
+          <BoardAutoClosePeriodSection canEdit={canEdit} />
         </YStack>
       </ScrollView>
     </YStack>
