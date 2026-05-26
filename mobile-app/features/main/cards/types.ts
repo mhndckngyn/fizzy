@@ -7,6 +7,9 @@ export interface Card {
   creatorName: string;
   createdAt: string;
   updatedAt: string | null;
+  lastActiveAt: string;
+  autoClosePeriodDays: number;
+  isGolden: boolean;
   maybeId?: string | null;
   doneId?: string | null;
   notNowId?: string | null;

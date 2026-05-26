@@ -1,9 +1,10 @@
-import { RotateCcw } from "@tamagui/lucide-icons-2";
+import { RotateCcw, StarFull } from "@tamagui/lucide-icons-2";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
-import { Separator, Text, XStack, YStack } from "tamagui";
-import { Card } from "../types";
-import { useCurrentTeamParams } from "../../_shared/hooks";
 import { useRouter } from "expo-router";
+import { Separator, Text, XStack, YStack } from "tamagui";
+import { useCurrentTeamParams } from "../../_shared/hooks";
+import { Card } from "../types";
 
 interface CardPreviewProps {
   card: Card;
@@ -29,6 +30,20 @@ export default function CardPreview({
 
   const createdAtLabel = `Added ${formatDistanceToNow(card.createdAt)} ago`;
 
+  const isAboutToClose =
+    card.autoClosePeriodDays > 0 &&
+    card.notNowId == null &&
+    (() => {
+      const daysInactive = differenceInCalendarDays(
+        new Date(),
+        parseISO(card.lastActiveAt),
+      );
+      const daysLeft = card.autoClosePeriodDays - daysInactive;
+      return (
+        daysLeft >= 0 && daysLeft <= Math.ceil(card.autoClosePeriodDays / 2)
+      );
+    })();
+
   // Updated at with first letter capitalized
   const rawLabel =
     (card.updatedAt
@@ -52,7 +67,7 @@ export default function CardPreview({
       shadowOpacity={0.1}
     >
       {/* Header Bar */}
-      <XStack>
+      <XStack ai="center" paddingRight="$2">
         <XStack
           gap="$2"
           ai="center"
@@ -76,6 +91,28 @@ export default function CardPreview({
             {boardName}
           </Text>
         </XStack>
+
+        <XStack flex={1} />
+
+        {card.isGolden && (
+          <StarFull size={16} color="#efbb00" style={{ marginRight: 6 }} />
+        )}
+
+        {isAboutToClose && (
+          <XStack
+            width={20}
+            height={20}
+            borderRadius={10}
+            backgroundColor="#e8a020"
+            ai="center"
+            jc="center"
+            mr="$2"
+          >
+            <Text color="white" fontWeight="900" fontSize={12} lineHeight={13}>
+              !
+            </Text>
+          </XStack>
+        )}
       </XStack>
 
       {/* Card Content */}
