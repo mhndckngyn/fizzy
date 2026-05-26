@@ -10,7 +10,9 @@ export function TeamNameSection({ canEdit }: { canEdit: boolean }) {
   const { data } = useTeams();
   const { mutate, isPending } = useUpdateTeam();
 
-  const currentName = data?.teams.find((t) => t.teamId === teamId)?.name ?? "";
+  const team = data?.teams.find((t) => t.teamId === teamId);
+  const currentName = team?.name ?? "";
+  const currentPeriod = team?.autoClosePeriodDays;
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -30,7 +32,10 @@ export function TeamNameSection({ canEdit }: { canEdit: boolean }) {
       setEditing(false);
       return;
     }
-    mutate({ teamId, name: trimmed }, { onSuccess: () => setEditing(false) });
+    mutate(
+      { teamId, name: trimmed, autoClosePeriodDays: currentPeriod },
+      { onSuccess: () => setEditing(false) },
+    );
   }
 
   return (

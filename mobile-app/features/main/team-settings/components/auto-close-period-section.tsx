@@ -25,6 +25,7 @@ export function AutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
 
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<number>(currentPeriod);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function handleStartEdit() {
     setSelected(currentPeriod);
@@ -33,6 +34,7 @@ export function AutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
 
   function handleCancel() {
     setEditing(false);
+    setSaveError(null);
   }
 
   function handleSelect(days: number) {
@@ -40,9 +42,13 @@ export function AutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
       setEditing(false);
       return;
     }
+    setSaveError(null);
     mutate(
       { teamId, name: currentName, autoClosePeriodDays: days },
-      { onSuccess: () => setEditing(false) },
+      {
+        onSuccess: () => setEditing(false),
+        onError: () => setSaveError("Failed to save. Please try again."),
+      },
     );
   }
 
@@ -97,40 +103,43 @@ export function AutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
             </Text>
           </XStack>
         ) : (
-          <XStack
-            flexWrap="wrap"
-            gap="$2"
-            pt="$1"
-            opacity={isPending ? 0.6 : 1}
-          >
-            {VALID_PERIOD_DAYS.map((days) => {
-              const isActive = days === selected;
-              return (
-                <View
-                  key={days}
-                  onPress={() => {
-                    setSelected(days);
-                    handleSelect(days);
-                  }}
-                  pressStyle={{ opacity: 0.7 }}
-                  cursor="pointer"
-                  px="$3"
-                  py="$1.5"
-                  br="$10"
-                  borderWidth={1}
-                  bg={isActive ? "$blue9" : "transparent"}
-                >
-                  <Text
-                    fontSize="$3"
-                    fontWeight="600"
-                    color={isActive ? "white" : "$color"}
+          <YStack gap="$2" pt="$1">
+            <XStack flexWrap="wrap" gap="$2">
+              {VALID_PERIOD_DAYS.map((days) => {
+                const isActive = days === selected;
+                return (
+                  <View
+                    key={days}
+                    onPress={() => {
+                      setSelected(days);
+                      handleSelect(days);
+                    }}
+                    pressStyle={{ opacity: 0.7 }}
+                    cursor="pointer"
+                    px="$3"
+                    py="$1.5"
+                    br="$10"
+                    borderWidth={1}
+                    borderColor={isActive ? "$blue9" : "$gray5"}
+                    bg={isActive ? "$blue9" : "transparent"}
                   >
-                    {formatDays(days)}
-                  </Text>
-                </View>
-              );
-            })}
-          </XStack>
+                    <Text
+                      fontSize="$3"
+                      fontWeight="600"
+                      color={isActive ? "white" : "$color"}
+                    >
+                      {formatDays(days)}
+                    </Text>
+                  </View>
+                );
+              })}
+            </XStack>
+            {saveError && (
+              <Text fontSize="$2" color="$red9">
+                {saveError}
+              </Text>
+            )}
+          </YStack>
         )
       ) : (
         <Text fontSize="$5" fontWeight="600" color="$color">

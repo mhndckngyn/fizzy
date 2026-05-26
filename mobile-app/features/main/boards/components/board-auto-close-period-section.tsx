@@ -33,6 +33,7 @@ export function BoardAutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
 
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<Selection>(currentPeriod);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function handleStartEdit() {
     setSelected(currentPeriod);
@@ -41,6 +42,7 @@ export function BoardAutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
 
   function handleCancel() {
     setEditing(false);
+    setSaveError(null);
   }
 
   function handleSelect(value: Selection) {
@@ -48,6 +50,7 @@ export function BoardAutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
       setEditing(false);
       return;
     }
+    setSaveError(null);
     mutate(
       {
         teamId,
@@ -55,7 +58,10 @@ export function BoardAutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
         name: currentName,
         autoClosePeriodDays: value,
       },
-      { onSuccess: () => setEditing(false) },
+      {
+        onSuccess: () => setEditing(false),
+        onError: () => setSaveError("Failed to save. Please try again."),
+      },
     );
   }
 
@@ -177,6 +183,11 @@ export function BoardAutoClosePeriodSection({ canEdit }: { canEdit: boolean }) {
                 );
               })}
             </XStack>
+            {saveError && (
+              <Text fontSize="$2" color="$red9">
+                {saveError}
+              </Text>
+            )}
           </YStack>
         )
       ) : (
