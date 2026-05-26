@@ -1,8 +1,8 @@
-import { TouchableOpacity } from "react-native";
-import { View, Text, XStack, YStack, Separator, Avatar } from "tamagui";
-import { RefreshCw, MessageSquare } from "@tamagui/lucide-icons-2";
+import { getInitials, getTextTint } from "@/features/main/_shared/helpers";
 import { CardSummary } from "@/features/main/cards/use-filter-cards";
-import { getInitials } from "@/features/main/_shared/helpers";
+import { MessageSquare, RefreshCw } from "@tamagui/lucide-icons-2";
+import { TouchableOpacity } from "react-native";
+import { Avatar, Separator, Text, View, XStack, YStack } from "tamagui";
 
 function daysAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -35,6 +35,7 @@ export function CardItem({
   const bgColor = `${colColor}18`;
   const { initials, color } = getInitials(card.creatorName);
   const comCount = card.commentsCount ?? 0;
+  const textColor = getTextTint(colColor);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.78}>
@@ -78,7 +79,7 @@ export function CardItem({
             <Text
               fontSize={11}
               fontWeight="800"
-              color={colColor}
+              color={textColor}
               letterSpacing={0.5}
             >
               {colName}
@@ -90,7 +91,7 @@ export function CardItem({
           <Text
             fontWeight="700"
             fontSize={15}
-            color={colColor}
+            color={textColor}
             numberOfLines={2}
             lineHeight={22}
           >
@@ -131,7 +132,7 @@ export function CardItem({
 
               <YStack gap="$1">
                 <XStack ai="center" gap="$2">
-                  <Text fontSize={11} color={colColor} fontWeight="600">
+                  <Text fontSize={11} color={textColor} fontWeight="600">
                     ADDED {addedDays} DAYS AGO
                   </Text>
 
@@ -139,14 +140,14 @@ export function CardItem({
 
                   <RefreshCw size={11} color={colColor} />
 
-                  <Text fontSize={11} color={colColor} fontWeight="600">
+                  <Text fontSize={11} color={textColor} fontWeight="600">
                     {updatedText}
                   </Text>
                 </XStack>
                 {creatorName ? (
                   <Text
                     fontSize={11}
-                    color={colColor}
+                    color={textColor}
                     fontWeight="600"
                     ml="$0.5"
                   >
@@ -159,7 +160,7 @@ export function CardItem({
             {comCount > 0 && (
               <XStack ai="center" gap="$1" borderRadius="$2" px="$1.5" py="$1">
                 <MessageSquare size={15} color={colColor} />
-                <Text fontSize={15} fontWeight="700" color={colColor}>
+                <Text fontSize={15} fontWeight="700" color={textColor}>
                   {comCount}
                 </Text>
               </XStack>

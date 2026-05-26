@@ -1,12 +1,14 @@
 import { getInitials } from "@/features/main/_shared/helpers";
+import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useMembers } from "@/features/main/members/use-members";
 import { FeedList } from "@/features/main/events/components/event-feeds/feed-list";
 import { useEventFeeds } from "@/features/main/events/use-event-feeds";
-import { useLocalSearchParams } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 import { Separator, Text, View, XStack, YStack } from "tamagui";
 
 export default function MemberDetailsPage() {
   const { memberId } = useLocalSearchParams<{ memberId: string }>();
+  const { teamId } = useCurrentTeamParams();
 
   const { data: membersData } = useMembers();
   const member = membersData?.members.find((m) => m.memberId === memberId);
@@ -49,6 +51,62 @@ export default function MemberDetailsPage() {
                   {member.email}
                 </Text>
               </YStack>
+            </XStack>
+
+            <XStack gap="$2" paddingHorizontal="$4" paddingBottom="$3">
+              <Link
+                href={{
+                  pathname: "/teams/[teamId]/filter-cards",
+                  params: {
+                    teamId,
+                    initialAssignedToIds: member.memberId,
+                  },
+                }}
+                asChild
+              >
+                <Text
+                  flex={1}
+                  textAlign="center"
+                  fontSize="$3"
+                  fontWeight="600"
+                  color="$blue10"
+                  borderWidth={1}
+                  borderColor="$blue6"
+                  borderRadius="$3"
+                  paddingVertical="$2"
+                  backgroundColor="$blue2"
+                  pressStyle={{ opacity: 0.7 }}
+                >
+                  Assigned to {member.memberName}
+                </Text>
+              </Link>
+
+              <Link
+                href={{
+                  pathname: "/teams/[teamId]/filter-cards",
+                  params: {
+                    teamId,
+                    initialAddedByIds: member.memberId,
+                  },
+                }}
+                asChild
+              >
+                <Text
+                  flex={1}
+                  textAlign="center"
+                  fontSize="$3"
+                  fontWeight="600"
+                  color="$blue10"
+                  borderWidth={1}
+                  borderColor="$blue6"
+                  borderRadius="$3"
+                  paddingVertical="$2"
+                  backgroundColor="$blue2"
+                  pressStyle={{ opacity: 0.7 }}
+                >
+                  Added by {member.memberName}
+                </Text>
+              </Link>
             </XStack>
 
             <XStack

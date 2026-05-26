@@ -1,20 +1,21 @@
 import { useBoards } from "@/features/main/boards/use-boards";
+import { useCurrentMemberStore } from "@/features/main/members/use-current-member-store";
+import { useMembers } from "@/features/main/members/use-members";
+import { useTags } from "@/features/main/tags/use-list-tags";
 import {
   ClipboardList,
   Home,
   Kanban,
   Plus,
+  Search,
+  Tag,
   User,
-  UserPlus,
-  UserRound,
 } from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import { Accordion, Input, Separator, XStack, YStack } from "tamagui";
 import AccordionSection from "./accordion-section";
 import IconButton from "./icon-button";
 import NavButton from "./nav-button";
-import { useMembers } from "@/features/main/members/use-members";
-import { useCurrentMemberStore } from "@/features/main/members/use-current-member-store";
 
 interface Props {
   teamId: string;
@@ -28,6 +29,8 @@ export default function TeamPopoverContent({ teamId }: Props) {
     (s) => s.currentMember?.memberId,
   );
 
+  const { data: tagsData } = useTags(teamId);
+
   return (
     <>
       <Input
@@ -37,44 +40,69 @@ export default function TeamPopoverContent({ teamId }: Props) {
         size="$4"
       />
 
-      <XStack mt="$4" gap="$2" justifyContent="space-between">
-        <NavButton
-          active
-          onPress={() => router.push(`/teams/${teamId}`)}
-          icon={Home}
-          label="Home"
-        />
-        <NavButton
-          icon={ClipboardList}
-          label="Assigned"
-          onPress={() =>
-            router.push({
-              pathname: "/teams/[teamId]/filter-cards",
-              params: {
-                teamId,
-                ...(currentMemberId && {
-                  initialAssignedToIds: currentMemberId,
-                }),
-              },
-            })
-          }
-        />
-        <NavButton
-          icon={Plus}
-          label="Added"
-          onPress={() =>
-            router.push({
-              pathname: "/teams/[teamId]/filter-cards",
-              params: {
-                teamId,
-                ...(currentMemberId && { initialAddedByIds: currentMemberId }),
-              },
-            })
-          }
-        />
-      </XStack>
+      <YStack mt="$4" gap="$2" width="100%">
+        {/* Row 1 */}
+        <XStack gap="$2" justifyContent="space-between">
+          <NavButton
+            active
+            onPress={() => router.push(`/teams/${teamId}`)}
+            icon={Home}
+            label="Home"
+          />
+          <NavButton
+            icon={Search}
+            label="Search"
+            onPress={() =>
+              router.push({
+                pathname: "/teams/[teamId]/filter-cards",
+                params: {
+                  teamId,
+                },
+              })
+            }
+          />
+        </XStack>
 
-      <Accordion mt="$2" defaultValue={["boards", "people"]} type="multiple">
+        {/* Row 2 */}
+        <XStack gap="$2" justifyContent="space-between">
+          <NavButton
+            icon={ClipboardList}
+            label="Assigned To Me"
+            onPress={() =>
+              router.push({
+                pathname: "/teams/[teamId]/filter-cards",
+                params: {
+                  teamId,
+                  ...(currentMemberId && {
+                    initialAssignedToIds: currentMemberId,
+                  }),
+                },
+              })
+            }
+          />
+          <NavButton
+            icon={Plus}
+            label="Added By Me"
+            onPress={() =>
+              router.push({
+                pathname: "/teams/[teamId]/filter-cards",
+                params: {
+                  teamId,
+                  ...(currentMemberId && {
+                    initialAddedByIds: currentMemberId,
+                  }),
+                },
+              })
+            }
+          />
+        </XStack>
+      </YStack>
+
+      <Accordion
+        mt="$2"
+        defaultValue={["boards", "people", "tags"]}
+        type="multiple"
+      >
         <AccordionSection value="boards" title="BOARDS">
           <YStack>
             <IconButton
@@ -94,6 +122,24 @@ export default function TeamPopoverContent({ teamId }: Props) {
               />
             ))}
           </YStack>
+        </AccordionSection>
+
+        <Separator marginVertical="$1" />
+
+        <AccordionSection value="tags" title="TAGS">
+          {tagsData?.map((tag) => (
+            <IconButton
+              key={tag.tagId}
+              icon={Tag}
+              label={tag.title}
+              onPress={() =>
+                router.push({
+                  pathname: "/teams/[teamId]/filter-cards",
+                  params: { teamId, initialTagIds: tag.tagId },
+                })
+              }
+            />
+          ))}
         </AccordionSection>
 
         <Separator marginVertical="$1" />

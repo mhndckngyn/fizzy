@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TouchableOpacity, TextInput, FlatList, Keyboard } from "react-native";
 import { View, Text, XStack, YStack, ScrollView, Spinner } from "tamagui";
@@ -78,12 +78,23 @@ export type FilterCardsScreenProps = {
   initialBoardId?: string;
   initialAssignedToIds?: string[];
   initialAddedByIds?: string[];
+  initialTagIds?: string[];
 };
+
+function resolveIds(
+  prop: string[] | undefined,
+  param: string | string[] | undefined,
+): string[] {
+  if (prop) return prop;
+  if (!param) return [];
+  return Array.isArray(param) ? param : [param];
+}
 
 export default function FilterCardsScreen({
   initialBoardId,
   initialAssignedToIds,
   initialAddedByIds,
+  initialTagIds,
 }: FilterCardsScreenProps) {
   const { teamId } = useCurrentTeamParams();
   const router = useRouter();
@@ -92,6 +103,7 @@ export default function FilterCardsScreen({
     initialBoardId?: string;
     initialAssignedToIds?: string | string[];
     initialAddedByIds?: string | string[];
+    initialTagIds?: string | string[];
   }>();
 
   const resolvedBoardId =
@@ -99,26 +111,6 @@ export default function FilterCardsScreen({
     (typeof params.initialBoardId === "string"
       ? params.initialBoardId
       : undefined);
-  const resolvedAssignedToIds = useMemo(
-    () =>
-      initialAssignedToIds ??
-      (params.initialAssignedToIds
-        ? Array.isArray(params.initialAssignedToIds)
-          ? params.initialAssignedToIds
-          : [params.initialAssignedToIds]
-        : []),
-    [initialAssignedToIds, params.initialAssignedToIds],
-  );
-  const resolvedAddedByIds = useMemo(
-    () =>
-      initialAddedByIds ??
-      (params.initialAddedByIds
-        ? Array.isArray(params.initialAddedByIds)
-          ? params.initialAddedByIds
-          : [params.initialAddedByIds]
-        : []),
-    [initialAddedByIds, params.initialAddedByIds],
-  );
 
   const { data: boardsData } = useBoards();
   const { data: membersData } = useMembers();
@@ -128,12 +120,16 @@ export default function FilterCardsScreen({
   const members = membersData?.members ?? [];
   const tags = tagsData ?? [];
 
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters, setFilters] = useState<FilterState>(() => ({
     ...DEFAULT_FILTERS,
     boardId: resolvedBoardId ?? null,
-    assignedToIds: resolvedAssignedToIds,
-    addedByIds: resolvedAddedByIds,
-  });
+    assignedToIds: resolveIds(
+      initialAssignedToIds,
+      params.initialAssignedToIds,
+    ),
+    addedByIds: resolveIds(initialAddedByIds, params.initialAddedByIds),
+    tagIds: resolveIds(initialTagIds, params.initialTagIds),
+  }));
   const [sheetOpen, setSheetOpen] = useState<SheetOpen>(null);
 
   const patch = useCallback(
@@ -147,10 +143,22 @@ export default function FilterCardsScreen({
       setFilters({
         ...DEFAULT_FILTERS,
         boardId: resolvedBoardId ?? null,
-        assignedToIds: resolvedAssignedToIds,
-        addedByIds: resolvedAddedByIds,
+        assignedToIds: resolveIds(
+          initialAssignedToIds,
+          params.initialAssignedToIds,
+        ),
+        addedByIds: resolveIds(initialAddedByIds, params.initialAddedByIds),
+        tagIds: resolveIds(initialTagIds, params.initialTagIds),
       }),
-    [resolvedBoardId, resolvedAssignedToIds, resolvedAddedByIds],
+    [
+      resolvedBoardId,
+      initialAssignedToIds,
+      params.initialAssignedToIds,
+      initialAddedByIds,
+      params.initialAddedByIds,
+      initialTagIds,
+      params.initialTagIds,
+    ],
   );
 
   const queryParams: FilterCardsParams = {
