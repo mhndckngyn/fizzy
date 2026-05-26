@@ -30,7 +30,8 @@ public static class GetCard
         Guid? NotNowId,
         string CreatorName,
         DateTime CreatedAt,
-        DateTime? UpdatedAt,
+        DateTime LastActiveAt,
+        int AutoClosePeriodDays,
         List<GetCardAssignee> Assignments,
         bool IsWatching,
         bool IsGolden,
@@ -63,7 +64,9 @@ public static class GetCard
                     c.BoardId,
                     c.ColumnId,
                     c.CreatedAt,
-                    c.UpdatedAt,
+                    c.LastActiveAt,
+                    AutoClosePeriodDays = c.Board.AutoClosePeriodDays
+                        ?? c.Board.Team.AutoClosePeriodDays,
                     CreatorName = dbContext
                         .Members.Where(m => m.Id == c.CreatorMemberId)
                         .Select(m => m.Name)
@@ -125,7 +128,8 @@ public static class GetCard
                     card.NotNowId,
                     card.CreatorName ?? string.Empty,
                     card.CreatedAt,
-                    card.UpdatedAt,
+                    card.LastActiveAt,
+                    card.AutoClosePeriodDays,
                     card.Assignments,
                     card.IsWatching,
                     card.IsGolden,

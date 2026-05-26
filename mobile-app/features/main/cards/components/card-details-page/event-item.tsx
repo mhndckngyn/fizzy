@@ -1,6 +1,6 @@
 import { CardEvent } from "@/features/main/events/use-card-events";
+import { SquareKanban } from "@tamagui/lucide-icons-2";
 import { format } from "date-fns";
-import { Activity } from "@tamagui/lucide-icons-2";
 import { Text, XStack, YStack } from "tamagui";
 
 export default function EventItem({ event }: { event: CardEvent }) {
@@ -12,7 +12,7 @@ export default function EventItem({ event }: { event: CardEvent }) {
       backgroundColor="$gray3"
       borderRadius="$2"
     >
-      <Activity size={14} color="$color" />
+      <SquareKanban size="$1" color="$gray10" />
       <YStack flex={1} gap="$0.5">
         <Text fontSize="$4" fontWeight="bold">
           {event.title}

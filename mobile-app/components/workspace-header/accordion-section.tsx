@@ -1,4 +1,4 @@
-import { ChevronDown } from "@tamagui/lucide-icons-2";
+import { ChevronDown, ChevronRight } from "@tamagui/lucide-icons-2";
 import React from "react";
 import { Accordion, Text, XStack } from "tamagui";
 
@@ -26,13 +26,21 @@ const AccordionSection = ({
     >
       {({ open }: { open: boolean }) => (
         <XStack alignItems="center" gap="$2">
-          <ChevronDown
-            size={14}
-            style={{
-              transform: [{ rotate: open ? "0deg" : "-90deg" }],
-              // transition: "transform 0.2s",
-            }}
-          />
+          {open ? (
+            <ChevronDown
+              size={14}
+              style={{
+                transform: [{ rotate: open ? "0deg" : "-90deg" }],
+              }}
+            />
+          ) : (
+            <ChevronRight
+              size={14}
+              style={{
+                transform: [{ rotate: open ? "0deg" : "-90deg" }],
+              }}
+            />
+          )}
           <Text
             fontWeight="800"
             fontSize={14}

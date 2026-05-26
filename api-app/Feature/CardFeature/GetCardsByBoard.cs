@@ -5,9 +5,9 @@ using Infrastructure.Database;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feature.Card;
+namespace Feature.CardFeature;
 
-public class GetCardsByBoard
+public static class GetCardsByBoard
 {
     internal sealed record GetCardsByBoardQuery(Guid TeamId, Guid BoardId)
         : IRequest<Result<GetCardsByBoardResponse>>;
@@ -19,12 +19,14 @@ public class GetCardsByBoard
         int No,
         string? Title,
         DateTime CreatedAt,
-        DateTime? UpdatedAt,
+        DateTime LastActiveAt,
+        int AutoClosePeriodDays,
         string? CreatorName,
         Guid? ColumnId,
         Guid? MaybeId,
         Guid? DoneId,
-        Guid? NotNowId
+        Guid? NotNowId,
+        bool IsGolden
     );
 
     internal class GetCardsByBoardHandler(AppDbContext dbContext)
@@ -43,12 +45,14 @@ public class GetCardsByBoard
                     c.No,
                     c.Title,
                     c.CreatedAt,
-                    c.UpdatedAt,
+                    c.LastActiveAt,
+                    c.Board.AutoClosePeriodDays ?? c.Board.Team.AutoClosePeriodDays,
                     c.Creator.Name,
                     c.ColumnId,
                     c.Maybe != null ? c.Maybe.Id : null,
                     c.Done != null ? c.Done.Id : null,
-                    c.NotNow != null ? c.NotNow.Id : null
+                    c.NotNow != null ? c.NotNow.Id : null,
+                    c.Golden != null
                 ))
                 .ToListAsync(cancellationToken);
 

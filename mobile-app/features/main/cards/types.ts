@@ -7,6 +7,9 @@ export interface Card {
   creatorName: string;
   createdAt: string;
   updatedAt: string | null;
+  lastActiveAt: string;
+  autoClosePeriodDays: number;
+  isGolden: boolean;
   maybeId?: string | null;
   doneId?: string | null;
   notNowId?: string | null;
@@ -34,6 +37,8 @@ export interface CardDetail {
   isWatching: boolean;
   tags: { tagId: string; title: string; color: string }[];
   isGolden: boolean;
+  lastActiveAt: string;
+  autoClosePeriodDays: number;
 }
 
 export type CardMention = Pick<Card, "cardId" | "no" | "title">;

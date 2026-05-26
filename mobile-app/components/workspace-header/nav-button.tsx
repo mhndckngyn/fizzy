@@ -24,14 +24,15 @@ const NavButton = ({
   return (
     <Button
       flex={1}
-      flexDirection="column"
-      height={70}
+      gap="$2"
+      jc="flex-start"
       backgroundColor={active ? "$blue3" : "$backgroundHover"}
       borderColor={active ? "$blue7" : "transparent"}
       borderWidth={1}
       onPress={handlePress}
+      borderRadius="$8"
     >
-      <Icon size={20} color={active ? "$blue10" : "$color"} />
+      <Icon size={20} color={active ? "$blue10" : "$gray11"} />
       <Text
         fontSize={13}
         fontWeight={"bold"}

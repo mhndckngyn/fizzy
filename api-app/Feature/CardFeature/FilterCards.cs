@@ -29,7 +29,8 @@ public static class FilterCards
         List<TagDto> Tags,
         DateTime CreatedAt,
         string CreatorName,
-        DateTime? UpdatedAt,
+        DateTime LastActiveAt,
+        int AutoClosePeriodDays,
         DateTime? ClosedAt,
         int CommentsCount
     );
@@ -138,7 +139,7 @@ public static class FilterCards
             {
                 "newest" => query.OrderByDescending(c => c.CreatedAt),
                 "oldest" => query.OrderBy(c => c.CreatedAt),
-                _ => query.OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt),
+                _ => query.OrderByDescending(c => c.LastActiveAt),
             };
 
             int total = await query.CountAsync(ct);
@@ -158,7 +159,9 @@ public static class FilterCards
                     c.BoardId,
                     BoardName = c.Board.Name,
                     c.CreatedAt,
-                    c.UpdatedAt,
+                    c.LastActiveAt,
+                    AutoClosePeriodDays = c.Board.AutoClosePeriodDays
+                        ?? c.Board.Team.AutoClosePeriodDays,
                     CreatorName = c.Creator.Name,
                     ClosedAt = c.Done != null ? (DateTime?)c.Done.CreatedAt : null,
                     Assignees = c
@@ -231,7 +234,8 @@ public static class FilterCards
                         Tags: r.Tags,
                         CreatedAt: r.CreatedAt,
                         CreatorName: r.CreatorName,
-                        UpdatedAt: r.UpdatedAt,
+                        LastActiveAt: r.LastActiveAt,
+                        AutoClosePeriodDays: r.AutoClosePeriodDays,
                         ClosedAt: r.ClosedAt,
                         CommentsCount: r.CommentsCount
                     );
