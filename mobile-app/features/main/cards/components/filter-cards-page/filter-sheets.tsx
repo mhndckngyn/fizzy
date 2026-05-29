@@ -9,7 +9,7 @@ import {
   Sheet,
 } from "tamagui";
 import { Check, X } from "@tamagui/lucide-icons-2";
-import { CardStatus, CardSortBy } from "@/features/main/cards/use-filter-cards";
+import { CardSortBy } from "@/features/main/cards/use-filter-cards";
 
 export const SORT_OPTIONS: { label: string; value: CardSortBy }[] = [
   { label: "Recently updated", value: "recently-updated" },
@@ -17,11 +17,12 @@ export const SORT_OPTIONS: { label: string; value: CardSortBy }[] = [
   { label: "Oldest to newest", value: "oldest" },
 ];
 
-export const STATUS_OPTIONS: { label: string; value: CardStatus }[] = [
+export const STATUS_OPTIONS = [
   { label: "Open", value: "open" },
   { label: "Done", value: "done" },
   { label: "Not now", value: "not-now" },
-  { label: "Maybe", value: "maybe" },
+  { label: "Closing soon", value: "closing-soon" },
+  { label: "Golden", value: "golden" },
 ];
 
 // ── Generic multi-select sheet ────────────────────────────────────────────────

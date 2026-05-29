@@ -45,6 +45,7 @@ public static class FilterCards
         List<string>? Statuses,
         string SortBy,
         List<Guid>? AssignedToIds,
+        bool AssignedToNone,
         List<Guid>? AddedByIds,
         List<Guid>? ClosedByIds,
         List<Guid>? TagIds,
@@ -107,17 +108,40 @@ public static class FilterCards
                 bool wantOpen = req.Statuses.Contains("open");
                 bool wantDone = req.Statuses.Contains("done");
                 bool wantNotNow = req.Statuses.Contains("not-now");
-                bool wantMaybe = req.Statuses.Contains("maybe");
+                bool wantGolden = req.Statuses.Contains("golden");
+                bool wantClosingSoon = req.Statuses.Contains("closing-soon");
+
+                var now = DateTime.UtcNow;
+                var soonThreshold = now.AddDays(7);
 
                 query = query.Where(c =>
-                    (wantOpen && c.Done == null && c.NotNow == null && c.Maybe == null)
+                    (
+                        wantOpen
+                        && c.Done == null
+                        && c.NotNow == null
+                        && c.Maybe == null
+                        && c.Golden == null
+                    )
                     || (wantDone && c.Done != null)
                     || (wantNotNow && c.NotNow != null)
-                    || (wantMaybe && c.Maybe != null)
+                    || (wantGolden && c.Golden != null)
+                    || (
+                        wantClosingSoon
+                        && c.Done == null
+                        && c.NotNow == null
+                        && c.Maybe == null
+                        && c.LastActiveAt.AddDays(
+                            (double)(
+                                c.Board.AutoClosePeriodDays ?? c.Board.Team.AutoClosePeriodDays
+                            )
+                        ) <= soonThreshold
+                    )
                 );
             }
 
-            if (req.AssignedToIds is { Count: > 0 })
+            if (req.AssignedToNone)
+                query = query.Where(c => !c.Assignments.Any());
+            else if (req.AssignedToIds is { Count: > 0 })
                 query = query.Where(c =>
                     c.Assignments.Any(a => req.AssignedToIds.Contains(a.AssigneeMemberId))
                 );
@@ -155,6 +179,7 @@ public static class FilterCards
                     IsDone = c.Done != null,
                     IsNotNow = c.NotNow != null,
                     IsMaybe = c.Maybe != null,
+                    IsGolden = c.Golden != null,
                     c.ColumnId,
                     c.BoardId,
                     BoardName = c.Board.Name,
@@ -200,7 +225,7 @@ public static class FilterCards
                     string status =
                         r.IsDone ? "done"
                         : r.IsNotNow ? "not-now"
-                        : r.IsMaybe ? "maybe"
+                        : r.IsGolden ? "golden"
                         : "open";
 
                     string? colName = null;
@@ -261,6 +286,7 @@ public static class FilterCards
                         string? statuses = null,
                         string? sortBy = "recently-updated",
                         string? assignedTo = null,
+                        string? assignedToNone = null,
                         string? addedBy = null,
                         string? closedBy = null,
                         string? tags = null,
@@ -282,6 +308,7 @@ public static class FilterCards
                             Statuses: ParseStrings(statuses),
                             SortBy: sortBy ?? "recently-updated",
                             AssignedToIds: ParseGuids(assignedTo),
+                            AssignedToNone: assignedToNone == "true",
                             AddedByIds: ParseGuids(addedBy),
                             ClosedByIds: ParseGuids(closedBy),
                             TagIds: ParseGuids(tags),

@@ -14,7 +14,12 @@ export type CardTag = {
   color: string;
 };
 
-export type CardStatus = "open" | "done" | "not-now" | "maybe";
+export type CardStatus =
+  | "open"
+  | "done"
+  | "not-now"
+  | "closing-soon"
+  | "golden";
 export type CardSortBy = "recently-updated" | "newest" | "oldest";
 
 export type CardSummary = {
@@ -49,6 +54,7 @@ export type FilterCardsParams = {
   statuses?: CardStatus[] | null;
   sortBy?: CardSortBy;
   assignedToIds?: string[] | null;
+  assignedToNone?: boolean;
   addedByIds?: string[] | null;
   closedByIds?: string[] | null;
   tagIds?: string[] | null;
@@ -69,8 +75,11 @@ export const useFilterCards = (params: FilterCardsParams = {}) => {
       if (params.statuses?.length)
         searchParams.set("statuses", params.statuses.join(","));
       if (params.sortBy) searchParams.set("sortBy", params.sortBy);
-      if (params.assignedToIds?.length)
+      if (params.assignedToNone) {
+        searchParams.set("assignedToNone", "true");
+      } else if (params.assignedToIds?.length) {
         searchParams.set("assignedTo", params.assignedToIds.join(","));
+      }
       if (params.addedByIds?.length)
         searchParams.set("addedBy", params.addedByIds.join(","));
       if (params.closedByIds?.length)

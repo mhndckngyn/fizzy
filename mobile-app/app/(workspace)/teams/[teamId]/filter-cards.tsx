@@ -161,12 +161,16 @@ export default function FilterCardsScreen({
     ],
   );
 
+  const hasNoOne = filters.assignedToIds.includes("no-one");
+  const realAssignedIds = filters.assignedToIds.filter((id) => id !== "no-one");
+
   const queryParams: FilterCardsParams = {
     boardId: filters.boardId,
     search: filters.search || null,
     statuses: filters.statuses.length ? filters.statuses : null,
     sortBy: filters.sortBy,
-    assignedToIds: filters.assignedToIds.length ? filters.assignedToIds : null,
+    assignedToNone: hasNoOne,
+    assignedToIds: realAssignedIds.length ? realAssignedIds : null,
     addedByIds: filters.addedByIds.length ? filters.addedByIds : null,
     closedByIds: filters.closedByIds.length ? filters.closedByIds : null,
     tagIds: filters.tagIds.length ? filters.tagIds : null,
@@ -176,10 +180,14 @@ export default function FilterCardsScreen({
   const { data, isLoading } = useFilterCards(queryParams);
   const cards = data?.cards ?? [];
 
-  const memberOptions = members.map((m) => ({
-    label: m.memberName,
-    value: m.memberId,
-  }));
+  const memberOptions = [
+    { label: "No one", value: "no-one" },
+    ...members.map((m) => ({
+      label: m.memberName,
+      value: m.memberId,
+    })),
+  ];
+
   const tagOptions = tags.map((t) => ({
     label: t.title,
     value: t.tagId,
@@ -213,7 +221,6 @@ export default function FilterCardsScreen({
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* ── Filter bar ── */}
       <YStack
         px="$3"
         pt="$3"
@@ -222,7 +229,6 @@ export default function FilterCardsScreen({
         borderBottomWidth={1}
         borderBottomColor="$borderColor"
       >
-        {/* Search input */}
         <XStack
           ai="center"
           gap="$2"
@@ -249,7 +255,6 @@ export default function FilterCardsScreen({
           )}
         </XStack>
 
-        {/* Pills row */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <XStack gap="$2" ai="center">
             {showBoardFilter && (
@@ -355,7 +360,6 @@ export default function FilterCardsScreen({
         </ScrollView>
       </YStack>
 
-      {/* ── Results ── */}
       {isLoading ? (
         <View flex={1} ai="center" jc="center">
           <Spinner size="large" />
@@ -390,7 +394,6 @@ export default function FilterCardsScreen({
         />
       )}
 
-      {/* ── Sheets ── */}
       <SortSheet
         open={sheetOpen === "sort"}
         onClose={() => setSheetOpen(null)}
