@@ -16,7 +16,7 @@ export const auth = betterAuth({
     "fizzy://",
     "exp://",
   ],
-  
+
   plugins: [
     jwt({
       jwt: {
@@ -30,6 +30,7 @@ export const auth = betterAuth({
     }),
     expo(),
     emailOTP({
+      expiresIn: 600,
       async sendVerificationOTP({ email, otp, type }) {
         console.log("verifying");
         if (type === "sign-in") {

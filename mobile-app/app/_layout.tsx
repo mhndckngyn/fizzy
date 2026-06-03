@@ -6,40 +6,61 @@ import {
 import { Redirect, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-import { TamaguiProvider } from "tamagui";
+import { TamaguiProvider, useTheme, useThemeName } from "tamagui";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { queryClient } from "@/lib/query-client";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { tamaguiConfig } from "../tamagui.config";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
-const IS_LOGGED_IN = false;
+function RootLayoutNav() {
+  const theme = useTheme();
+  const themeName = useThemeName();
+  const isDark = themeName.startsWith("dark");
+
+  return (
+    <ThemeProvider
+      value={
+        isDark
+          ? {
+              ...DarkTheme,
+              colors: { ...DarkTheme.colors, background: theme.background.val },
+            }
+          : {
+              ...DefaultTheme,
+              colors: {
+                ...DefaultTheme.colors,
+                background: theme.background.val,
+              },
+            }
+      }
+    >
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="(workspace)" />
+      </Stack>
+
+      <StatusBar style={isDark ? "light" : "dark"} />
+    </ThemeProvider>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <TamaguiProvider
-      config={tamaguiConfig}
-      defaultTheme={colorScheme === "dark" ? "dark" : "light"}
-    >
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="signin" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
-        </Stack>
-
-        {!IS_LOGGED_IN && <Redirect href="/signin/signin" />}
-
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </TamaguiProvider>
+    <KeyboardProvider>
+      <QueryClientProvider client={queryClient}>
+        <TamaguiProvider
+          config={tamaguiConfig}
+          // defaultTheme={colorScheme === "dark" ? "dark" : "light"}
+          defaultTheme="light"
+        >
+          <RootLayoutNav />
+        </TamaguiProvider>
+      </QueryClientProvider>
+    </KeyboardProvider>
   );
 }

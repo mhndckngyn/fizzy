@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = new Resend(process.env.RESEND_SECRET_KEY);
 
 export async function sendOTPLogin(email: string, otp: string) {
   try {
@@ -10,6 +10,9 @@ export async function sendOTPLogin(email: string, otp: string) {
       subject: "Login OTP Code",
       html: `<p>Your OTP code is <strong>${otp}</strong></p>`,
     });
+
+    console.log("OTP sent:", otp);
+    console.log("Resend response:", data);
     return data;
   } catch (error) {
     throw error;
@@ -24,6 +27,8 @@ export async function sendOTPVerification(email: string, otp: string) {
       subject: "Verify OTP Code",
       html: `<p>Your OTP code is <strong>${otp}</strong></p>`,
     });
+    console.log("Verification OTP sent:", otp);
+    console.log("Resend response:", data);
     return data;
   } catch (error) {
     throw error;
