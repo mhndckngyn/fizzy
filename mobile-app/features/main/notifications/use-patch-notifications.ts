@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { queryKeys } from "../_shared/query-keys";
 import { TeamListResponse } from "../teams/use-teams";
-import { Notification, NotificationSchema } from "./types";
+import { NotificationSchema } from "./types";
+import { NotificationListResponse } from "./use-notifications";
 
 export function usePatchNotifications() {
   const queryClient = useQueryClient();
@@ -34,13 +35,25 @@ export function usePatchNotifications() {
 
       queryClient.setQueryData(
         queryKeys.teamNotifications(newNotification.teamId),
-        (currentNotifications: Notification[] | undefined) => {
-          // might be undefined if we haven't fetched notification list yet
-          if (!currentNotifications) {
-            return [newNotification];
+        (current: NotificationListResponse | undefined) => {
+          if (!current) {
+            return { notifications: [newNotification] };
           }
 
-          return [newNotification, ...currentNotifications];
+          const exists = current.notifications.some(
+            (n) => n.notificationId === newNotification.notificationId,
+          );
+
+          return {
+            ...current,
+            notifications: exists
+              ? current.notifications.map((n) =>
+                  n.notificationId === newNotification.notificationId
+                    ? newNotification
+                    : n,
+                )
+              : [newNotification, ...current.notifications],
+          };
         },
       );
     },
