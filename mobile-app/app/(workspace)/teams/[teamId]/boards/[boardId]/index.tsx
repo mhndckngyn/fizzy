@@ -20,7 +20,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { Dimensions, RefreshControl, ScrollView } from "react-native";
-import { Button, Text, View, XStack } from "tamagui";
+import { Button, Spinner, Text, View, XStack, YStack } from "tamagui";
 
 const { width: windowWidth } = Dimensions.get("window");
 const COLUMN_WIDTH = windowWidth * 0.85;
@@ -145,7 +145,12 @@ export default function KanbanBoard() {
   };
 
   if (!boardCards) {
-    return <Text>Loading board...</Text>; // TODO better loading
+    return (
+      <YStack ai="center" pt="$4">
+        <Spinner size="large" color="$gray10" />
+        <Text color="$gray10">Loading board...</Text>
+      </YStack>
+    );
   }
 
   return (

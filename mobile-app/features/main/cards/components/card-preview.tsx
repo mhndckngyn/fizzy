@@ -94,25 +94,32 @@ export default function CardPreview({
 
         <XStack flex={1} />
 
-        {card.isGolden && (
-          <StarFull size={16} color="#efbb00" style={{ marginRight: 6 }} />
-        )}
+        <XStack mt={4} gap="$1.5">
+          {card.isGolden && (
+            <StarFull size={18} color="#efbb00" style={{ marginRight: 6 }} />
+          )}
 
-        {isAboutToClose && (
-          <XStack
-            width={20}
-            height={20}
-            borderRadius={10}
-            backgroundColor="#e8a020"
-            ai="center"
-            jc="center"
-            mr="$2"
-          >
-            <Text color="white" fontWeight="900" fontSize={12} lineHeight={13}>
-              !
-            </Text>
-          </XStack>
-        )}
+          {isAboutToClose && (
+            <XStack
+              width={18}
+              height={18}
+              borderRadius={10}
+              backgroundColor="#e8a020"
+              ai="center"
+              jc="center"
+              mr="$2"
+            >
+              <Text
+                color="white"
+                fontWeight="900"
+                fontSize={12}
+                lineHeight={13}
+              >
+                !
+              </Text>
+            </XStack>
+          )}
+        </XStack>
       </XStack>
 
       {/* Card Content */}

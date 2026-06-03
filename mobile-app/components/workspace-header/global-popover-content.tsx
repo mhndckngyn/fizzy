@@ -1,7 +1,13 @@
 import { useCurrentTeamParams } from "@/features/main/_shared/hooks";
 import { useTeams } from "@/features/main/teams/use-teams";
 import { useSignOut } from "@/features/user/use-sign-out";
-import { Building2, LogOut, Plus, Settings } from "@tamagui/lucide-icons-2";
+import {
+  Building2,
+  LogOut,
+  Plus,
+  Settings,
+  Users,
+} from "@tamagui/lucide-icons-2";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Accordion, Separator, YStack } from "tamagui";
@@ -40,6 +46,12 @@ export default function GlobalPopoverContent() {
               icon={Plus}
               label="Create a team"
               onPress={() => router.push("/teams/create")}
+            />
+
+            <IconButton
+              icon={Users}
+              label="Join a team"
+              onPress={() => router.push("/teams/join")}
             />
 
             {teamsData?.teams.map((team) => (
