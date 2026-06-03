@@ -5,6 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas = ["auth"]
 }
 
 model User {
@@ -19,6 +20,8 @@ model User {
   sessions      Session[]
 
   @@map("user")
+
+  @@schema("auth")
 }
 
 model Session {
@@ -34,6 +37,8 @@ model Session {
 
   @@index([userId])
   @@map("session")
+
+  @@schema("auth")
 }
 
 model Account {
@@ -54,6 +59,8 @@ model Account {
 
   @@index([userId])
   @@map("account")
+
+  @@schema("auth")
 }
 
 model Verification {
@@ -66,6 +73,8 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+
+  @@schema("auth")
 }
 
 model Jwks {
@@ -76,4 +85,6 @@ model Jwks {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 
   @@map("jwks")
+  
+  @@schema("auth")
 }
