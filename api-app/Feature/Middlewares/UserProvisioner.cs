@@ -39,8 +39,23 @@ public class UserProvisioner(RequestDelegate next)
             return;
         }
 
-        CreateUser.CreateUserCommand command = new(userId, email);
-        await mediator.Send(command, context.RequestAborted);
+        GetUser.GetUserCommand getUserCommand = new(userId);
+        var result = await mediator.Send(getUserCommand, context.RequestAborted);
+        var user = result.Value;
+
+        if (user == null)
+        {
+            CreateUser.CreateUserCommand createUserCommand = new(userId, email);
+            await mediator.Send(createUserCommand, context.RequestAborted);
+        }
+        else if (user.DeletedAt != null)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(
+                new FailResponse<string>("User has been deleted.")
+            );
+            return;
+        }
 
         await next(context);
     }
