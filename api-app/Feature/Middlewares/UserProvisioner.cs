@@ -1,11 +1,12 @@
 using System.Security.Claims;
+using Domain.Entities;
 using Feature.ApiResponses;
 using Feature.UserFeature;
 using MediatR;
 
 namespace Feature.Middlewares;
 
-public class UserProvisioner(RequestDelegate next)
+public class UserProvisioner(RequestDelegate next, IUserCache userCache)
 {
     public async Task InvokeAsync(HttpContext context, IMediator mediator)
     {
@@ -39,16 +40,41 @@ public class UserProvisioner(RequestDelegate next)
             return;
         }
 
-        GetUser.GetUserCommand getUserCommand = new(userId);
-        var result = await mediator.Send(getUserCommand, context.RequestAborted);
-        var user = result.Value;
+        CachedUser? cachedUser = await userCache.GetAsync(userId, context.RequestAborted);
 
-        if (user == null)
+        if (cachedUser == null)
         {
-            CreateUser.CreateUserCommand createUserCommand = new(userId, email);
-            await mediator.Send(createUserCommand, context.RequestAborted);
+            var getResult = await mediator.Send(
+                new GetUser.GetUserCommand(userId),
+                context.RequestAborted
+            );
+            User? user = getResult.Value;
+
+            if (user == null)
+            {
+                var createResult = await mediator.Send(
+                    new CreateUser.CreateUserCommand(userId, email),
+                    context.RequestAborted
+                );
+                if (createResult.IsSuccess)
+                {
+                    await userCache.SetAsync(
+                        userId,
+                        new CachedUser(DeletedAt: null),
+                        context.RequestAborted
+                    );
+                }
+            }
+            else
+            {
+                await userCache.SetAsync(
+                    userId,
+                    new CachedUser(DeletedAt: user.DeletedAt),
+                    context.RequestAborted
+                );
+            }
         }
-        else if (user.DeletedAt != null)
+        else if (cachedUser.DeletedAt != null)
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             await context.Response.WriteAsJsonAsync(

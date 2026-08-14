@@ -1,17 +1,18 @@
 using Carter;
 using Feature.AutoCloseFeature;
-using Feature.BackgroundServices;
 using Feature.BackgroundServices.AuthEventHandler;
 using Feature.Hubs;
 using Feature.Middlewares;
 using Feature.NotificationFeature.NotificationProcessor;
 using Feature.NotificationFeature.NotificationStrategies;
+using Feature.UserFeature;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,6 +118,13 @@ builder
         "RabbitMQ user delete options are invalid."
     )
     .ValidateOnStart();
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = builder.Configuration.GetConnectionString("Redis");
+    return ConnectionMultiplexer.Connect(configuration);
+});
+builder.Services.AddSingleton<IUserCache, RedisUserCache>();
 
 builder.Services.AddHostedService<UserDeleteReceiverService>();
 

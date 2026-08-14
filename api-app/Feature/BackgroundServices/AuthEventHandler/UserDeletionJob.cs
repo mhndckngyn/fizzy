@@ -3,11 +3,11 @@ using MediatR;
 
 namespace Feature.BackgroundServices.AuthEventHandler;
 
-public class UserDeletionJob(ISender sender) : IUserDeletionJob
+public class UserDeletionJob(ISender sender, IUserCache userCache) : IUserDeletionJob
 {
     public async Task DeleteAsync(Guid userId)
     {
-        var command = new DeleteUser.DeleteUserCommand(userId);
-        await sender.Send(command);
+        await sender.Send(new DeleteUser.DeleteUserCommand(userId));
+        await userCache.DeleteAsync(userId, CancellationToken.None);
     }
 }
