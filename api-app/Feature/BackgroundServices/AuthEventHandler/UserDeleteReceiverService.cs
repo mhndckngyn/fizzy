@@ -10,14 +10,14 @@ namespace Feature.BackgroundServices.AuthEventHandler;
 
 public class UserDeleteReceiverService(
     IBackgroundJobClient backgroundJobClient,
-    IOptions<RabbitMqUserDeleteOptions> options,
+    IOptions<RabbitMqOptions> options,
     ILogger<UserDeleteReceiverService> logger
 ) : BackgroundService
 {
     private IConnection? Connection { get; set; }
     private IChannel? Channel { get; set; }
 
-    private readonly RabbitMqUserDeleteOptions _options = options.Value;
+    private readonly RabbitMqOptions _options = options.Value;
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -162,19 +162,4 @@ public class UserDeleteReceiverService(
 
         public string Email { get; set; } = "";
     }
-}
-
-public class RabbitMqUserDeleteOptions
-{
-    public const string SectionName = "RabbitMq:UserDelete";
-
-    public string HostName { get; set; } = "localhost";
-    public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
-    public string UserName { get; set; } = "guest";
-    public string Password { get; set; } = "guest";
-    public string VirtualHost { get; set; } = "/";
-    public string ExchangeName { get; set; } = "auth_events";
-    public string QueueName { get; set; } = "auth_events_handler";
-    public string RoutingKey { get; set; } = "user.deleted";
-    public int DeliveryLimit { get; set; } = 5;
 }

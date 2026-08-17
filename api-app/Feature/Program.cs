@@ -103,20 +103,9 @@ builder.Services.AddScoped<IAutoCloseJob, AutoCloseJob>();
 builder.Services.AddScoped<IUserDeletionJob, UserDeletionJob>();
 
 builder
-    .Services.AddOptions<RabbitMqUserDeleteOptions>()
-    .Bind(builder.Configuration.GetSection(RabbitMqUserDeleteOptions.SectionName))
-    .Validate(
-        options =>
-            !string.IsNullOrWhiteSpace(options.HostName)
-            && options.Port > 0
-            && !string.IsNullOrWhiteSpace(options.UserName)
-            && !string.IsNullOrWhiteSpace(options.VirtualHost)
-            && !string.IsNullOrWhiteSpace(options.ExchangeName)
-            && !string.IsNullOrWhiteSpace(options.QueueName)
-            && !string.IsNullOrWhiteSpace(options.RoutingKey)
-            && options.DeliveryLimit > 0,
-        "RabbitMQ user delete options are invalid."
-    )
+    .Services.AddOptions<RabbitMqOptions>()
+    .Bind(builder.Configuration.GetSection(RabbitMqOptions.SectionName))
+    .ValidateDataAnnotations()
     .ValidateOnStart();
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
