@@ -24,8 +24,8 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
 
         builder
             .HasOne(m => m.User)
-            .WithMany()
+            .WithMany(u => u.Members)
             .HasForeignKey(m => m.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

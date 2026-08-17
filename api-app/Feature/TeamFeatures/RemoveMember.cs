@@ -16,7 +16,7 @@ public static class RemoveMember
         Guid RequestingUserId
     ) : IRequest<Result>;
 
-    internal class RemoveMemberHandler(AppDbContext dbContext)
+    internal class RemoveMemberHandler(AppDbContext dbContext, ISender sender)
         : IRequestHandler<RemoveMemberCommand, Result>
     {
         public async Task<Result> Handle(
@@ -52,26 +52,11 @@ public static class RemoveMember
 
             try
             {
-                await dbContext
-                    .Pins.Where(p => p.MemberId == target.Id)
-                    .ExecuteDeleteAsync(cancellationToken);
-
-                await dbContext
-                    .Notifications.Where(n => n.RecipientMemberId == target.Id)
-                    .ExecuteDeleteAsync(cancellationToken);
-
-                await dbContext
-                    .CardWatches.Where(cw => cw.MemberId == target.Id)
-                    .ExecuteDeleteAsync(cancellationToken);
-
-                await dbContext
-                    .BoardAccesses.Where(ba => ba.MemberId == target.Id)
-                    .ExecuteDeleteAsync(cancellationToken);
-
-                target.RemovedAt = DateTime.UtcNow;
-                target.UserId = null;
+                await sender.Send(
+                    new ClearMemberData.ClearMemberDataCommand(target),
+                    cancellationToken
+                );
                 await dbContext.SaveChangesAsync(cancellationToken);
-
                 await transaction.CommitAsync(cancellationToken);
             }
             catch

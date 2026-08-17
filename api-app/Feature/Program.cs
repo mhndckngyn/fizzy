@@ -1,15 +1,18 @@
 using Carter;
 using Feature.AutoCloseFeature;
+using Feature.BackgroundServices.AuthEventHandler;
 using Feature.Hubs;
 using Feature.Middlewares;
 using Feature.NotificationFeature.NotificationProcessor;
 using Feature.NotificationFeature.NotificationStrategies;
+using Feature.UserFeature;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,6 +100,33 @@ builder.Services.AddScoped<INotificationStrategy, CommentStrategy>();
 builder.Services.AddScoped<INotificationStrategy, MentionStrategy>();
 
 builder.Services.AddScoped<IAutoCloseJob, AutoCloseJob>();
+builder.Services.AddScoped<IUserDeletionJob, UserDeletionJob>();
+
+builder
+    .Services.AddOptions<RabbitMqUserDeleteOptions>()
+    .Bind(builder.Configuration.GetSection(RabbitMqUserDeleteOptions.SectionName))
+    .Validate(
+        options =>
+            !string.IsNullOrWhiteSpace(options.HostName)
+            && options.Port > 0
+            && !string.IsNullOrWhiteSpace(options.UserName)
+            && !string.IsNullOrWhiteSpace(options.VirtualHost)
+            && !string.IsNullOrWhiteSpace(options.ExchangeName)
+            && !string.IsNullOrWhiteSpace(options.QueueName)
+            && !string.IsNullOrWhiteSpace(options.RoutingKey)
+            && options.DeliveryLimit > 0,
+        "RabbitMQ user delete options are invalid."
+    )
+    .ValidateOnStart();
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = builder.Configuration.GetConnectionString("Redis");
+    return ConnectionMultiplexer.Connect(configuration);
+});
+builder.Services.AddSingleton<IUserCache, RedisUserCache>();
+
+builder.Services.AddHostedService<UserDeleteReceiverService>();
 
 var app = builder.Build();
 
