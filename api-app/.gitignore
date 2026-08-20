@@ -15,6 +15,9 @@ bin\\Debug/
 *.sln.docstates
 *.env
 
+# Local secrets loaded via SECRETS_FILE_PATH (see Program.cs)
+appsettings.Secrets.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

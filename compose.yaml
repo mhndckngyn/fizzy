@@ -1,0 +1,111 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    hostname: postgres
+    environment:
+      POSTGRES_USER: fizzy
+      POSTGRES_DB: fizzy
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+    secrets:
+      - postgres-password
+    # Published so `dotnet ef database update` can be run from the host (the api-app
+    # image is the aspnet *runtime* image — no SDK/dotnet-ef/project files inside it to
+    # `docker compose exec` migrations with).
+    ports:
+      - "5432:5432"
+    volumes:
+      # Postgres 18+ images store data in a version-specific subdirectory under
+      # /var/lib/postgresql (not directly at .../data) — mount the parent.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fizzy -d fizzy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    hostname: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # RABBITMQ_DEFAULT_USER/PASS are the only credentials in this file that can't be handed
+  # to the image as a mounted file (the official image has no _FILE variant for them), so
+  # instead we read the password from the mounted secret ourselves and export it before
+  # delegating to the real entrypoint. The password is never written into this file or
+  # exposed via `docker inspect`.
+  rabbitmq:
+    image: rabbitmq:4.3.4
+    hostname: fizzy-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: fizzy
+    secrets:
+      - rabbitmq-password
+    entrypoint: ["sh", "-c"]
+    command:
+      - >
+        export RABBITMQ_DEFAULT_PASS="$$(cat /run/secrets/rabbitmq-password)" &&
+        exec docker-entrypoint.sh rabbitmq-server
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api-app:
+    build:
+      context: ./api-app
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      # HTTPS is left unconfigured here: the aspnet runtime image has no dev cert
+      # mounted, so ASPNETCORE_HTTPS_PORTS would fail to bind. TLS termination is a
+      # concern for a real deployment, not this local-dev compose file.
+      ASPNETCORE_HTTP_PORTS: "8080"
+      SECRETS_FILE_PATH: /run/secrets/appsettings-secrets
+    secrets:
+      - appsettings-secrets
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  auth-server:
+    build:
+      context: ./auth-server
+    environment:
+      PORT: "4000"
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:8081,fizzy://,exp://"
+      SECRETS_FILE_PATH: /run/secrets/authserver-secrets
+    secrets:
+      - authserver-secrets
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+
+# All real credentials live in ./secrets/ (gitignored; see ./secrets/*.example for the
+# expected shape of each file) and are mounted read-only at /run/secrets/<name>. Nothing
+# secret is ever passed as a plain `environment:` value above.
+secrets:
+  postgres-password:
+    file: ./secrets/postgres_password.txt
+  rabbitmq-password:
+    file: ./secrets/rabbitmq_password.txt
+  appsettings-secrets:
+    file: ./secrets/appsettings.Secrets.json
+  authserver-secrets:
+    file: ./secrets/authserver.env

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure;
 
@@ -14,13 +15,18 @@ public static class InfrastructureExtensions
         IConfiguration configuration
     )
     {
-        string? connectionString = configuration.GetConnectionString("DefaultConnection");
+        services
+            .AddOptions<EfCoreOptions>()
+            .Bind(configuration.GetSection(EfCoreOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.AddSingleton<AuditableEntitySaveChangesInterceptor>();
         services.AddDbContext<AppDbContext>(
             (sp, options) =>
             {
-                options.UseNpgsql(connectionString);
+                var efCoreOptions = sp.GetRequiredService<IOptions<EfCoreOptions>>().Value;
+                options.UseNpgsql(efCoreOptions.ConnectionString);
                 options.AddInterceptors(
                     sp.GetRequiredService<AuditableEntitySaveChangesInterceptor>()
                 );

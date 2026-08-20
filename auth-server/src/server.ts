@@ -1,10 +1,15 @@
+import "./lib/load-env";
 import Fastify from "fastify";
 import { createAuth } from "./lib/auth";
 import fastifyCors from "@fastify/cors";
 import rabbitMQPlugin from "./plugins/rabbitmq";
 import { makePublishUserDeletedFn } from "./lib/auth-events";
+import { getCorsOrigins } from "./lib/cors-origins";
 
 const fastify = Fastify({ logger: true });
+
+const port = Number(process.env.PORT ?? 4000);
+const betterAuthUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:4000";
 
 async function main() {
   await fastify.register(rabbitMQPlugin);
@@ -14,7 +19,7 @@ async function main() {
   });
 
   await fastify.register(fastifyCors, {
-    origin: ["http://localhost:3000", "http://localhost:8081", "fizzy://"],
+    origin: getCorsOrigins(),
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
@@ -26,8 +31,8 @@ async function main() {
     url: "/api/auth/.well-known/openid-configuration",
     async handler(_, reply) {
       reply.code(200).send({
-        issuer: "http://localhost:4000",
-        jwks_uri: "http://localhost:4000/api/auth/jwks",
+        issuer: betterAuthUrl,
+        jwks_uri: `${betterAuthUrl}/api/auth/jwks`,
       });
     },
   });
@@ -70,8 +75,11 @@ async function main() {
     },
   });
 
-  await fastify.listen({ port: 4000 });
-  fastify.log.info("Server running on port 4000");
+  // host must be 0.0.0.0 (not the Fastify default of 127.0.0.1) to be reachable from
+  // outside the container, whether from the host machine's mapped port or another
+  // service on the compose network.
+  await fastify.listen({ port, host: "0.0.0.0" });
+  fastify.log.info(`Server running on port ${port}`);
 }
 
 main().catch((error) => {

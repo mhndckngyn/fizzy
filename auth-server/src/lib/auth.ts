@@ -5,6 +5,7 @@ import { emailOTP, jwt } from "better-auth/plugins";
 import { expo } from "@better-auth/expo";
 import { sendOTPLogin, sendOTPVerification } from "./resend";
 import type { PublishUserDeleted } from "./auth-events";
+import { getCorsOrigins } from "./cors-origins";
 
 type CreateAuthOptions = {
   publishUserDeleted: PublishUserDeleted;
@@ -21,12 +22,7 @@ function createAuth({ publishUserDeleted }: CreateAuthOptions) {
       requireEmailVerification: false,
     },
 
-    trustedOrigins: [
-      "http://localhost:3000",
-      "http://localhost:8081",
-      "fizzy://",
-      "exp://",
-    ],
+    trustedOrigins: getCorsOrigins(),
 
     plugins: [
       jwt({

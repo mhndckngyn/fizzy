@@ -1,2 +1,6 @@
 /node_modules
 *.exe
+
+# Local secrets mounted into containers via Docker Compose (see compose.yaml `secrets:`)
+/secrets/*
+!/secrets/*.example

@@ -1,6 +1,6 @@
 import type { ChannelModel, ConfirmChannel, Options, Replies } from "amqplib";
 import * as amqp from "amqplib";
-import "dotenv/config";
+import "../lib/load-env";
 import type { FastifyPluginAsync } from "fastify";
 import fp from "fastify-plugin";
 

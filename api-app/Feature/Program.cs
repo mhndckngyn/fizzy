@@ -5,16 +5,26 @@ using Feature.Hubs;
 using Feature.Middlewares;
 using Feature.NotificationFeature.NotificationProcessor;
 using Feature.NotificationFeature.NotificationStrategies;
+using Feature.Options;
 using Feature.UserFeature;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Secrets (real credentials/connection strings) are layered on top of appsettings.json /
+// appsettings.{Environment}.json from a file that's never committed. Locally this defaults to
+// a gitignored file next to appsettings.json; in Compose, SECRETS_FILE_PATH is overridden to
+// point at a mounted Docker secret instead.
+var secretsFilePath =
+    Environment.GetEnvironmentVariable("SECRETS_FILE_PATH") ?? "appsettings.Secrets.json";
+builder.Configuration.AddJsonFile(secretsFilePath, optional: true, reloadOnChange: false);
 
 // Add services to the container.
 
@@ -48,20 +58,30 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder
+    .Services.AddOptions<AuthApiOptions>()
+    .Bind(builder.Configuration.GetSection(AuthApiOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var authApiOptions = builder
+    .Configuration.GetSection(AuthApiOptions.SectionName)
+    .Get<AuthApiOptions>()!;
+
+builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = builder.Configuration["AuthApi:BaseUrl"];
+        options.Authority = authApiOptions.BaseUrl;
         options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
 
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["AuthApi:Issuer"],
+            ValidIssuer = authApiOptions.Issuer,
 
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["AuthApi:Audience"],
+            ValidAudience = authApiOptions.Audience,
         };
         // SignalR WebSocket clients pass the token via query string
         options.Events = new JwtBearerEvents
@@ -79,13 +99,22 @@ builder
         };
     });
 
-builder.Services.AddHangfire(cfg =>
-{
-    cfg.UsePostgreSqlStorage(options =>
+builder
+    .Services.AddOptions<HangfireOptions>()
+    .Bind(builder.Configuration.GetSection(HangfireOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddHangfire(
+    (sp, cfg) =>
     {
-        options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"));
-    });
-});
+        var hangfireOptions = sp.GetRequiredService<IOptions<HangfireOptions>>().Value;
+        cfg.UsePostgreSqlStorage(options =>
+        {
+            options.UseNpgsqlConnection(hangfireOptions.ConnectionString);
+        });
+    }
+);
 builder.Services.AddHangfireServer();
 
 builder.Services.AddSingleton<EventDispatchInterceptor>();
@@ -103,26 +132,21 @@ builder.Services.AddScoped<IAutoCloseJob, AutoCloseJob>();
 builder.Services.AddScoped<IUserDeletionJob, UserDeletionJob>();
 
 builder
-    .Services.AddOptions<RabbitMqUserDeleteOptions>()
-    .Bind(builder.Configuration.GetSection(RabbitMqUserDeleteOptions.SectionName))
-    .Validate(
-        options =>
-            !string.IsNullOrWhiteSpace(options.HostName)
-            && options.Port > 0
-            && !string.IsNullOrWhiteSpace(options.UserName)
-            && !string.IsNullOrWhiteSpace(options.VirtualHost)
-            && !string.IsNullOrWhiteSpace(options.ExchangeName)
-            && !string.IsNullOrWhiteSpace(options.QueueName)
-            && !string.IsNullOrWhiteSpace(options.RoutingKey)
-            && options.DeliveryLimit > 0,
-        "RabbitMQ user delete options are invalid."
-    )
+    .Services.AddOptions<RabbitMqOptions>()
+    .Bind(builder.Configuration.GetSection(RabbitMqOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder
+    .Services.AddOptions<RedisOptions>()
+    .Bind(builder.Configuration.GetSection(RedisOptions.SectionName))
+    .ValidateDataAnnotations()
     .ValidateOnStart();
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
-    var configuration = builder.Configuration.GetConnectionString("Redis");
-    return ConnectionMultiplexer.Connect(configuration);
+    var redisOptions = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+    return ConnectionMultiplexer.Connect(redisOptions.ConnectionString);
 });
 builder.Services.AddSingleton<IUserCache, RedisUserCache>();
 
